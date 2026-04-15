@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logAbuseAttempt } from "@/lib/logger";
+import { getClientIdentifier } from "@/lib/requestIdentity";
 import {
   checkSubmissionRateLimit,
   isShadowBanned,
@@ -17,38 +18,6 @@ type SubmitPayload = {
   website?: unknown;
   turnstileToken?: unknown;
 };
-
-function extractIpFromHeader(value: string | null) {
-  if (!value) return null;
-  const candidate = value.split(",")[0]?.trim();
-  if (!candidate) return null;
-
-  // Accept basic IPv4/IPv6-like values and drop obvious garbage.
-  const looksLikeIp = /^([a-fA-F0-9:.]+)$/.test(candidate);
-  return looksLikeIp ? candidate : null;
-}
-
-function getClientIdentifier(request: Request) {
-  // Prefer trusted proxy headers used by common edge providers.
-  const trustedIp =
-    extractIpFromHeader(request.headers.get("cf-connecting-ip")) ??
-    extractIpFromHeader(request.headers.get("x-vercel-forwarded-for")) ??
-    extractIpFromHeader(request.headers.get("x-real-ip"));
-
-  const userAgent = request.headers.get("user-agent") ?? "unknown";
-  if (trustedIp) {
-    return { ip: trustedIp, rateLimitKey: `ip:${trustedIp}`, userAgent };
-  }
-
-  // Fallback: still throttle unknown clients by a coarse fingerprint.
-  const acceptLanguage = request.headers.get("accept-language") ?? "unknown";
-  const fallbackKey = `${userAgent}:${acceptLanguage}`;
-  return {
-    ip: "unknown",
-    rateLimitKey: `fallback:${fallbackKey}`,
-    userAgent,
-  };
-}
 
 export async function POST(request: Request) {
   const { ip, rateLimitKey, userAgent } = getClientIdentifier(request);
@@ -145,6 +114,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabaseServer.from("entries").insert({
     text: validation.normalizedText,
+    stars: 0,
   });
 
   if (error) {

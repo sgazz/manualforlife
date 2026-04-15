@@ -11,6 +11,7 @@ type Entry = {
   id: string;
   text: string;
   created_at: string;
+  stars: number;
 };
 
 const MAX_LENGTH = 175;
@@ -29,11 +30,15 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [starringEntryIds, setStarringEntryIds] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
 
   const fetchEntries = useCallback(async () => {
     const response = await fetch("/api/entries", { method: "GET" });
     const payload = (await response.json()) as {
-      entries?: Entry[];
+      entries?: Array<Entry & { stars?: number }>;
       error?: string;
     };
 
@@ -42,8 +47,27 @@ export default function Home() {
       return;
     }
 
-    setEntries(payload.entries ?? []);
+    const normalizedEntries = (payload.entries ?? []).map((entry) => ({
+      ...entry,
+      stars: typeof entry.stars === "number" ? entry.stars : 0,
+    }));
+    setEntries(normalizedEntries);
     setErrorMessage(null);
+  }, []);
+
+  useEffect(() => {
+    const fromSession = window.sessionStorage.getItem("starred-entry-ids");
+    if (!fromSession) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(fromSession) as unknown;
+      if (Array.isArray(parsed) && parsed.every((id) => typeof id === "string")) {
+        setStarredEntryIds(parsed);
+      }
+    } catch {
+      // Ignore invalid session cache.
+    }
   }, []);
 
   useEffect(() => {
@@ -111,6 +135,54 @@ export default function Home() {
     setIsSubmitting(false);
   }
 
+  async function handleStar(entryId: string) {
+    if (starringEntryIds[entryId] || starredEntryIds.includes(entryId)) {
+      return;
+    }
+
+    setEntries((previousEntries) =>
+      previousEntries.map((entry) =>
+        entry.id === entryId ? { ...entry, stars: entry.stars + 1 } : entry,
+      ),
+    );
+    setStarringEntryIds((previous) => ({ ...previous, [entryId]: true }));
+
+    try {
+      const response = await fetch(`/api/entries/${entryId}/star`, { method: "POST" });
+      const payload = (await response.json()) as { stars?: number; error?: string };
+      if (!response.ok || typeof payload.stars !== "number") {
+        throw new Error(payload.error ?? "Failed to star entry.");
+      }
+
+      setEntries((previousEntries) =>
+        previousEntries.map((entry) =>
+          entry.id === entryId ? { ...entry, stars: payload.stars ?? entry.stars } : entry,
+        ),
+      );
+      setStarredEntryIds((previous) => {
+        if (previous.includes(entryId)) {
+          return previous;
+        }
+        const next = [...previous, entryId];
+        window.sessionStorage.setItem("starred-entry-ids", JSON.stringify(next));
+        return next;
+      });
+    } catch {
+      setEntries((previousEntries) =>
+        previousEntries.map((entry) =>
+          entry.id === entryId ? { ...entry, stars: Math.max(0, entry.stars - 1) } : entry,
+        ),
+      );
+      throw new Error("Could not save your star right now.");
+    } finally {
+      setStarringEntryIds((previous) => {
+        const next = { ...previous };
+        delete next[entryId];
+        return next;
+      });
+    }
+  }
+
   return (
     <ThemeProvider>
       <ThemedContent
@@ -122,6 +194,9 @@ export default function Home() {
         errorMessage={errorMessage}
         entries={entries}
         isLoading={isLoading}
+        onStar={handleStar}
+        starringEntryIds={starringEntryIds}
+        starredEntryIds={starredEntryIds}
       />
     </ThemeProvider>
   );
@@ -136,6 +211,9 @@ type ThemedContentProps = {
   errorMessage: string | null;
   entries: Entry[];
   isLoading: boolean;
+  onStar: (entryId: string) => Promise<void>;
+  starringEntryIds: Record<string, boolean>;
+  starredEntryIds: string[];
 };
 
 function ThemedContent({
@@ -147,12 +225,20 @@ function ThemedContent({
   errorMessage,
   entries,
   isLoading,
+  onStar,
+  starringEntryIds,
+  starredEntryIds,
 }: ThemedContentProps) {
   const { themes, currentTheme, currentThemeIndex } = useTheme();
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-    setShowHint(window.localStorage.getItem("theme-hint-dismissed") !== "true");
+    const frame = window.requestAnimationFrame(() => {
+      setShowHint(window.localStorage.getItem("theme-hint-dismissed") !== "true");
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -211,7 +297,13 @@ function ThemedContent({
             {errorMessage}
           </p>
         ) : null}
-        <EntriesList entries={entries} isLoading={isLoading} />
+        <EntriesList
+          entries={entries}
+          isLoading={isLoading}
+          onStar={onStar}
+          starringEntryIds={starringEntryIds}
+          starredEntryIds={starredEntryIds}
+        />
         <footer className="pt-2 text-center text-sm text-[color:var(--theme-muted)] transition-colors duration-[400ms]">
           For future generations.
         </footer>
