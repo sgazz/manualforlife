@@ -29,8 +29,11 @@ export function InputBox({
   return (
     <form
       onSubmit={onSubmit}
-      className="w-full space-y-4 rounded-2xl border bg-[color:var(--theme-surface)] p-5 shadow-sm backdrop-blur-sm transition-colors duration-400 sm:p-6"
-      style={{ borderColor: "var(--theme-border)" }}
+      className="w-full space-y-4 rounded-2xl border bg-[color:var(--theme-surface)] p-5 backdrop-blur-md transition-all duration-400 sm:p-6"
+      style={{
+        borderColor: "var(--theme-border)",
+        boxShadow: "var(--theme-shadow-strong), var(--theme-glow)",
+      }}
     >
       <label htmlFor="entry-text" className="sr-only">
         Life lesson text
@@ -52,8 +55,8 @@ export function InputBox({
         className="min-h-32 w-full resize-none rounded-xl border px-4 py-3 text-base text-[color:var(--theme-text)] outline-none transition duration-300 placeholder:text-[color:var(--theme-muted)] focus:ring-4"
         style={{
           borderColor: "var(--theme-border)",
-          backgroundColor: "color-mix(in srgb, var(--theme-surface) 92%, white 8%)",
-          boxShadow: "none",
+          backgroundColor: "color-mix(in srgb, var(--theme-surface) 90%, white 10%)",
+          boxShadow: "var(--theme-glow)",
         }}
       />
       {turnstileSiteKey ? (
@@ -78,11 +81,12 @@ export function InputBox({
         <button
           type="submit"
           disabled={isInvalid || isSubmitting}
-          className="rounded-full px-5 py-2 text-sm font-medium transition duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full px-5 py-2 text-sm font-medium transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
           style={{
             backgroundColor: "var(--theme-accent)",
             color: "var(--theme-accent-contrast)",
-            boxShadow: "0 0 0 1px var(--theme-accent-soft) inset",
+            boxShadow:
+              "0 0 0 1px var(--theme-accent-soft) inset, 0 8px 20px color-mix(in srgb, var(--theme-accent) 24%, transparent)",
           }}
         >
           {isSubmitting ? "Saving..." : "Leave a trace"}

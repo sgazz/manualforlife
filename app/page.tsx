@@ -148,7 +148,7 @@ function ThemedContent({
   entries,
   isLoading,
 }: ThemedContentProps) {
-  const { currentTheme, currentThemeIndex } = useTheme();
+  const { themes, currentTheme, currentThemeIndex } = useTheme();
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
@@ -173,18 +173,22 @@ function ThemedContent({
   return (
     <main className="flex min-h-svh items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
       <div
-        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide transition-all duration-[400ms] ${
+        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide backdrop-blur-md transition-all duration-[400ms] ${
           showHint ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
         style={{
           borderColor: "var(--theme-border)",
           backgroundColor: "var(--theme-surface)",
           color: "var(--theme-muted)",
+          boxShadow: "var(--theme-shadow-soft), var(--theme-glow)",
         }}
       >
         Shift + scroll or use arrow keys to change mood.
       </div>
-      <div className="w-full max-w-3xl space-y-8 transition-transform duration-[400ms]">
+      <div
+        className="w-full max-w-3xl space-y-8 rounded-3xl p-1 transition-transform duration-[400ms]"
+        style={{ boxShadow: "var(--theme-shadow-soft)" }}
+      >
         <Hero />
         <InputBox
           value={text}
@@ -212,7 +216,7 @@ function ThemedContent({
           For future generations.
         </footer>
         <p className="text-center text-xs tracking-wide text-[color:var(--theme-muted)]/80 transition-colors duration-[400ms]">
-          {currentThemeIndex + 1} / 5 - {currentTheme.label}
+          {currentThemeIndex + 1} / {themes.length} - {currentTheme.label}
         </p>
       </div>
     </main>

@@ -11,17 +11,13 @@ import {
 import { useScrollTheme } from "@/hooks/useScrollTheme";
 
 export type ThemeDefinition = {
-  id: "beginning" | "clarity" | "reflection" | "intensity" | "legacy";
+  id: "reflection";
   label: string;
   className: string;
 };
 
 const themes: ThemeDefinition[] = [
-  { id: "beginning", label: "Beginning", className: "theme-beginning" },
-  { id: "clarity", label: "Clarity", className: "theme-clarity" },
   { id: "reflection", label: "Reflection", className: "theme-reflection" },
-  { id: "intensity", label: "Intensity", className: "theme-intensity" },
-  { id: "legacy", label: "Legacy", className: "theme-legacy" },
 ];
 
 export type ThemeContextValue = {
