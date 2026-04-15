@@ -2,28 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-
-type LiveEntry = {
-  id: string;
-  text: string;
-  created_at: string;
-  stars: number;
-  signature: string | null;
-};
+import type { Entry } from "@/types/ui";
 
 type UseLiveTracesOptions = {
-  initialEntries: LiveEntry[];
+  initialEntries: Entry[];
   paused: boolean;
   limit?: number;
 };
 
 type UseLiveTracesResult = {
-  liveEntries: LiveEntry[];
+  liveEntries: Entry[];
   newlyAddedIds: string[];
-  setLiveEntriesFromSource: (entries: LiveEntry[]) => void;
+  setLiveEntriesFromSource: (entries: Entry[]) => void;
 };
 
-function normalizeEntry(input: Partial<LiveEntry> & { id: string }): LiveEntry {
+function normalizeEntry(input: Partial<Entry> & { id: string }): Entry {
   return {
     id: input.id,
     text: typeof input.text === "string" ? input.text : "",
@@ -38,12 +31,12 @@ export function useLiveTraces({
   paused,
   limit = 20,
 }: UseLiveTracesOptions): UseLiveTracesResult {
-  const [liveEntries, setLiveEntries] = useState<LiveEntry[]>(() =>
+  const [liveEntries, setLiveEntries] = useState<Entry[]>(() =>
     initialEntries.slice(0, limit),
   );
   const [newlyAddedIds, setNewlyAddedIds] = useState<string[]>([]);
   const pausedRef = useRef(paused);
-  const queuedEntriesRef = useRef<LiveEntry[]>([]);
+  const queuedEntriesRef = useRef<Entry[]>([]);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -58,7 +51,7 @@ export function useLiveTraces({
     queuedEntriesRef.current = [];
     const frame = window.requestAnimationFrame(() => {
       setLiveEntries((previous) => {
-        const merged = [...pending, ...previous].reduce<LiveEntry[]>(
+        const merged = [...pending, ...previous].reduce<Entry[]>(
           (accumulator, entry) => {
             if (!accumulator.some((existing) => existing.id === entry.id)) {
               accumulator.push(entry);
@@ -82,7 +75,7 @@ export function useLiveTraces({
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setLiveEntries((previous) => {
-        const merged = [...initialEntries, ...previous].reduce<LiveEntry[]>(
+        const merged = [...initialEntries, ...previous].reduce<Entry[]>(
           (accumulator, entry) => {
             if (!accumulator.some((existing) => existing.id === entry.id)) {
               accumulator.push(entry);
@@ -123,7 +116,7 @@ export function useLiveTraces({
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "entries" },
           (payload) => {
-            const nextEntry = normalizeEntry(payload.new as LiveEntry);
+            const nextEntry = normalizeEntry(payload.new as Entry);
             if (pausedRef.current) {
               queuedEntriesRef.current = [
                 nextEntry,
@@ -159,7 +152,7 @@ export function useLiveTraces({
     };
   }, [limit]);
 
-  function setLiveEntriesFromSource(entries: LiveEntry[]) {
+  function setLiveEntriesFromSource(entries: Entry[]) {
     setLiveEntries(entries.slice(0, limit));
   }
 

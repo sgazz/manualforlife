@@ -103,6 +103,7 @@ export function PanelShell({
       <button
         type="button"
         aria-label={`Close ${title} panel`}
+        title="Close panel"
         className="absolute inset-0 bg-black/8 backdrop-blur-[1px]"
         onClick={onClose}
       />
@@ -126,6 +127,7 @@ export function PanelShell({
           <button
             type="button"
             onClick={onClose}
+            title="Close panel"
             className="rounded-full border border-[color:var(--theme-border)] px-2 py-1 text-xs text-[color:var(--theme-muted)] transition hover:bg-white/30"
           >
             Close

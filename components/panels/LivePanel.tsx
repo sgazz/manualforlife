@@ -2,23 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-
-type LiveEntry = {
-  id: string;
-  text: string;
-  created_at: string;
-  stars: number;
-  signature: string | null;
-};
+import type { Entry, LoadingEntryMap } from "@/types/ui";
 
 type LivePanelProps = {
   isOpen: boolean;
   onClose: () => void;
   isLoading: boolean;
-  entries: LiveEntry[];
+  entries: Entry[];
   newlyAddedIds: string[];
   onStar: (entryId: string) => Promise<void>;
-  starringEntryIds: Record<string, boolean>;
+  starringEntryIds: LoadingEntryMap;
   starredEntryIds: string[];
 };
 
@@ -85,12 +78,21 @@ export function LivePanel({
               >
                 <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-[color:var(--theme-muted)]">
                   <span suppressHydrationWarning>
-                    {formatRelativeTime(entry.created_at, hasMounted)}
+                    <span title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}>
+                      {formatRelativeTime(entry.created_at, hasMounted)}
+                    </span>
                   </span>
                   <button
                     type="button"
                     disabled={isStarring || isStarred}
                     onClick={() => void onStar(entry.id)}
+                    title={
+                      isStarred
+                        ? "Star already added"
+                        : isStarring
+                          ? "Saving star..."
+                          : "Add star"
+                    }
                     className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 disabled:opacity-50"
                     style={{
                       borderColor: "var(--theme-border)",

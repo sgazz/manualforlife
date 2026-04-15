@@ -11,14 +11,7 @@ import { StarredTrigger } from "@/components/triggers/StarredTrigger";
 import { useLiveTraces } from "@/hooks/useLiveTraces";
 import { useTheme } from "@/hooks/useTheme";
 import { useTypingState } from "@/hooks/useTypingState";
-
-type Entry = {
-  id: string;
-  text: string;
-  created_at: string;
-  stars: number;
-  signature: string | null;
-};
+import type { Entry, LoadingEntryMap, PanelType, StarActionOptions } from "@/types/ui";
 
 const MAX_LENGTH = 175;
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -37,8 +30,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [signature, setSignature] = useState("");
-  const [openPanel, setOpenPanel] = useState<"live" | "starred" | null>(null);
-  const [starringEntryIds, setStarringEntryIds] = useState<Record<string, boolean>>(
+  const [openPanel, setOpenPanel] = useState<PanelType>(null);
+  const [starringEntryIds, setStarringEntryIds] = useState<LoadingEntryMap>(
     {},
   );
   const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
@@ -181,7 +174,7 @@ export default function Home() {
 
   async function handleStar(
     entryId: string,
-    options?: { closePanelOnSuccess?: boolean },
+    options?: StarActionOptions,
   ) {
     if (starringEntryIds[entryId] || starredEntryIds.includes(entryId)) {
       return;
@@ -269,10 +262,10 @@ type ThemedContentProps = {
   entries: Entry[];
   isLoading: boolean;
   isTyping: boolean;
-  openPanel: "live" | "starred" | null;
-  setOpenPanel: (panel: "live" | "starred" | null) => void;
-  onStar: (entryId: string, options?: { closePanelOnSuccess?: boolean }) => Promise<void>;
-  starringEntryIds: Record<string, boolean>;
+  openPanel: PanelType;
+  setOpenPanel: (panel: PanelType) => void;
+  onStar: (entryId: string, options?: StarActionOptions) => Promise<void>;
+  starringEntryIds: LoadingEntryMap;
   starredEntryIds: string[];
 };
 

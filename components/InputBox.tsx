@@ -164,6 +164,7 @@ export function InputBox({
               type="button"
               disabled={!canRevealSignature}
               onClick={() => setShowSignatureInput(true)}
+              title="Add signature"
               className="text-xs text-[color:var(--theme-muted)]/80 underline decoration-transparent transition hover:decoration-current disabled:cursor-default disabled:no-underline"
             >
               Would you like to sign it?
@@ -221,12 +222,23 @@ export function InputBox({
           </>
         ) : null}
         <div className="flex items-center justify-between gap-4">
-          <span className="text-sm transition-colors duration-300" style={{ color: lengthFeedback.color }}>
+          <span
+            title={`${Math.max(0, maxLength - value.length)} characters remaining (${value.length}/${maxLength})`}
+            className="text-sm transition-colors duration-300"
+            style={{ color: lengthFeedback.color }}
+          >
             {value.length} / {maxLength} - {lengthFeedback.label}
           </span>
           <button
             type="submit"
             disabled={isInvalid || isSubmitting}
+            title={
+              isSubmitting
+                ? "Saving your trace..."
+                : isInvalid
+                  ? "Enter a trace to submit"
+                  : "Submit trace"
+            }
             className="rounded-full px-5 py-2 text-sm font-medium transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
             style={{
               backgroundColor: "var(--theme-accent)",

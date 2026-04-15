@@ -2,19 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-
-type StarredEntry = {
-  id: string;
-  text: string;
-  created_at: string;
-  stars: number;
-  signature: string | null;
-};
+import type { Entry } from "@/types/ui";
 
 type StarredPanelProps = {
   isOpen: boolean;
   onClose: () => void;
-  entries: StarredEntry[];
+  entries: Entry[];
 };
 
 function formatDate(dateString: string, hasMounted: boolean) {

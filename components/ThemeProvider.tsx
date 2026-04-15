@@ -86,50 +86,6 @@ export function ThemeProvider({ children }: PropsWithChildren) {
         className={`theme-shell ${themes[currentThemeIndex].className} relative min-h-svh overflow-x-hidden`}
       >
         {children}
-        {!isMobile ? (
-          <div className="fixed right-5 top-1/2 z-30 -translate-y-1/2 space-y-3">
-            {themes.map((theme, index) => {
-              const isActive = index === currentThemeIndex;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  aria-label={`Switch to ${theme.label} theme`}
-                  onClick={() => setThemeByIndex(index)}
-                  className="block"
-                >
-                  <span
-                    className={`block h-2.5 w-2.5 rounded-full border transition-all duration-300 ${
-                      isActive
-                        ? "scale-125 border-[color:var(--theme-accent)] bg-[color:var(--theme-accent)]"
-                        : "border-[color:var(--theme-border)] bg-transparent"
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="fixed inset-x-0 bottom-4 z-30 flex items-center justify-center gap-2 px-4">
-            {themes.map((theme, index) => {
-              const isActive = index === currentThemeIndex;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  onClick={() => setThemeByIndex(index)}
-                  className={`rounded-full border px-3 py-1 text-xs transition duration-300 ${
-                    isActive
-                      ? "border-[color:var(--theme-accent)] bg-[color:var(--theme-accent)] text-[color:var(--theme-accent-contrast)]"
-                      : "border-[color:var(--theme-border)] bg-[color:var(--theme-surface)] text-[color:var(--theme-muted)]"
-                  }`}
-                >
-                  {theme.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
     </ThemeContext.Provider>
   );

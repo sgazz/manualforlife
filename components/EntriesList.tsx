@@ -1,20 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-type Entry = {
-  id: string;
-  text: string;
-  created_at: string;
-  stars: number;
-  signature: string | null;
-};
+import type { Entry, LoadingEntryMap } from "@/types/ui";
 
 type EntriesListProps = {
   entries: Entry[];
   isLoading: boolean;
   onStar: (entryId: string) => Promise<void>;
-  starringEntryIds: Record<string, boolean>;
+  starringEntryIds: LoadingEntryMap;
   starredEntryIds: string[];
 };
 
@@ -149,12 +142,21 @@ export function EntriesList({
                 >
                   <div className="mb-2 flex items-center justify-between gap-3 text-xs text-[color:var(--theme-muted)]">
                     <span suppressHydrationWarning>
-                      {formatRelativeTime(entry.created_at, hasMounted)}
+                      <span title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}>
+                        {formatRelativeTime(entry.created_at, hasMounted)}
+                      </span>
                     </span>
                     <button
                       type="button"
                       disabled={isStarring || isStarred}
                       onClick={() => void handleStar(entry.id)}
+                      title={
+                        isStarred
+                          ? "Star already added"
+                          : isStarring
+                            ? "Saving star..."
+                            : "Add star"
+                      }
                       className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-55"
                       style={{
                         borderColor: "var(--theme-border)",
@@ -201,6 +203,7 @@ export function EntriesList({
           <button
             type="button"
             onClick={() => setShowAll((previous) => !previous)}
+            title={showAll ? "Show fewer traces" : "Show more traces"}
             className="rounded-full border px-4 py-1.5 text-xs tracking-wide transition"
             style={{
               borderColor: "var(--theme-border)",
