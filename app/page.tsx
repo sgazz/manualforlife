@@ -1,65 +1,137 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { EntriesList } from "@/components/EntriesList";
+import { Hero } from "@/components/Hero";
+import { InputBox } from "@/components/InputBox";
+
+type Entry = {
+  id: string;
+  text: string;
+  created_at: string;
+};
+
+const MAX_LENGTH = 175;
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+
+declare global {
+  interface Window {
+    onTurnstileSuccess?: (token: string) => void;
+  }
+}
 
 export default function Home() {
+  const [text, setText] = useState("");
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+
+  const fetchEntries = useCallback(async () => {
+    const response = await fetch("/api/entries", { method: "GET" });
+    const payload = (await response.json()) as {
+      entries?: Entry[];
+      error?: string;
+    };
+
+    if (!response.ok) {
+      setErrorMessage(payload.error ?? "Failed to load entries.");
+      return;
+    }
+
+    setEntries(payload.entries ?? []);
+    setErrorMessage(null);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInitialEntries() {
+      await fetchEntries();
+      if (!isMounted) return;
+      setIsLoading(false);
+    }
+
+    void loadInitialEntries();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchEntries]);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) {
+      return;
+    }
+
+    window.onTurnstileSuccess = (token: string) => {
+      setTurnstileToken(token);
+    };
+
+    return () => {
+      window.onTurnstileSuccess = undefined;
+    };
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const website = String(formData.get("website") ?? "");
+
+    const trimmedText = text.trim();
+    if (!trimmedText || trimmedText.length > MAX_LENGTH) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    const response = await fetch("/api/submit", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ text: trimmedText, website, turnstileToken }),
+    });
+    const payload = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setErrorMessage(payload.error ?? "Failed to save entry.");
+    } else {
+      setText("");
+      setTurnstileToken("");
+      await fetchEntries();
+    }
+
+    setIsLoading(false);
+    setIsSubmitting(false);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
+      <div className="w-full max-w-3xl space-y-8">
+        <Hero />
+        <InputBox
+          value={text}
+          maxLength={MAX_LENGTH}
+          isSubmitting={isSubmitting}
+          turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
+          hasTurnstileToken={Boolean(turnstileToken)}
+          onChange={setText}
+          onSubmit={handleSubmit}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+        {errorMessage ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        ) : null}
+        <EntriesList entries={entries} isLoading={isLoading} />
+        <footer className="pt-2 text-center text-sm text-slate-500">
+          For future generations.
+        </footer>
+      </div>
+    </main>
   );
 }
