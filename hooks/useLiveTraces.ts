@@ -140,6 +140,20 @@ export function useLiveTraces({
             }, 1400);
           },
         )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "entries" },
+          (payload) => {
+            const updatedEntry = normalizeEntry(payload.new as Entry);
+            setLiveEntries((previous) =>
+              previous.map((entry) =>
+                entry.id === updatedEntry.id
+                  ? { ...entry, stars: updatedEntry.stars, signature: updatedEntry.signature, text: updatedEntry.text }
+                  : entry,
+              ),
+            );
+          },
+        )
         .subscribe();
     } catch {
       return;

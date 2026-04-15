@@ -13,3 +13,9 @@ export type StarActionOptions = {
 };
 
 export type LoadingEntryMap = Record<string, boolean>;
+
+export type StarApiResponse = {
+  stars?: number;
+  error?: string;
+  alreadyStarred?: boolean;
+};

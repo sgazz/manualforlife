@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-import type { Entry } from "@/types/ui";
+import type { Entry, LoadingEntryMap } from "@/types/ui";
 
 type StarredPanelProps = {
   isOpen: boolean;
   onClose: () => void;
   entries: Entry[];
+  onStar: (entryId: string) => Promise<void>;
+  starringEntryIds: LoadingEntryMap;
 };
 
 function formatDate(dateString: string, hasMounted: boolean) {
@@ -21,7 +23,13 @@ function formatDate(dateString: string, hasMounted: boolean) {
   }).format(date);
 }
 
-export function StarredPanel({ isOpen, onClose, entries }: StarredPanelProps) {
+export function StarredPanel({
+  isOpen,
+  onClose,
+  entries,
+  onStar,
+  starringEntryIds,
+}: StarredPanelProps) {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -56,7 +64,22 @@ export function StarredPanel({ isOpen, onClose, entries }: StarredPanelProps) {
                   <span suppressHydrationWarning>
                     {formatDate(entry.created_at, hasMounted)}
                   </span>
-                  <span>★ {entry.stars}</span>
+                  <button
+                    type="button"
+                    disabled={Boolean(starringEntryIds[entry.id])}
+                    onClick={() => void onStar(entry.id)}
+                    title={starringEntryIds[entry.id] ? "Saving star..." : "Remove star"}
+                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 disabled:opacity-50"
+                    style={{
+                      borderColor: "var(--theme-border)",
+                      color: "var(--theme-muted)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--theme-accent-soft) 65%, white 35%)",
+                    }}
+                  >
+                    <span aria-hidden="true">★</span>
+                    <span>{entry.stars}</span>
+                  </button>
                 </div>
                 <p className="text-sm leading-relaxed text-[color:var(--theme-text)]">{entry.text}</p>
                 {entry.signature ? (

@@ -84,11 +84,11 @@ export function LivePanel({
                   </span>
                   <button
                     type="button"
-                    disabled={isStarring || isStarred}
+                    disabled={isStarring}
                     onClick={() => void onStar(entry.id)}
                     title={
                       isStarred
-                        ? "Star already added"
+                        ? "Remove star"
                         : isStarring
                           ? "Saving star..."
                           : "Add star"

@@ -11,7 +11,13 @@ import { StarredTrigger } from "@/components/triggers/StarredTrigger";
 import { useLiveTraces } from "@/hooks/useLiveTraces";
 import { useTheme } from "@/hooks/useTheme";
 import { useTypingState } from "@/hooks/useTypingState";
-import type { Entry, LoadingEntryMap, PanelType, StarActionOptions } from "@/types/ui";
+import type {
+  Entry,
+  LoadingEntryMap,
+  PanelType,
+  StarActionOptions,
+  StarApiResponse,
+} from "@/types/ui";
 
 const MAX_LENGTH = 175;
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -35,7 +41,41 @@ export default function Home() {
     {},
   );
   const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
+  const [starredEntries, setStarredEntries] = useState<Entry[]>([]);
+  const [visitorId, setVisitorId] = useState<string | null>(null);
   const isTyping = useTypingState(text, { idleDelayMs: 2600 });
+
+  const fetchStarredEntries = useCallback(async () => {
+    if (!visitorId) {
+      setStarredEntries([]);
+      setStarredEntryIds([]);
+      return;
+    }
+
+    const response = await fetch("/api/entries/starred", {
+      method: "GET",
+      headers: {
+        "x-visitor-id": visitorId,
+      },
+    });
+    const payload = (await response.json()) as {
+      entries?: Array<Entry & { stars?: number; signature?: string | null }>;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      setErrorMessage(payload.error ?? "Failed to load starred entries.");
+      return;
+    }
+
+    const normalizedEntries = (payload.entries ?? []).map((entry) => ({
+      ...entry,
+      stars: typeof entry.stars === "number" ? entry.stars : 0,
+      signature: typeof entry.signature === "string" ? entry.signature : null,
+    }));
+    setStarredEntries(normalizedEntries);
+    setStarredEntryIds(normalizedEntries.map((entry) => entry.id));
+  }, [visitorId]);
 
   const fetchEntries = useCallback(async () => {
     const response = await fetch("/api/entries", { method: "GET" });
@@ -59,18 +99,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const fromSession = window.sessionStorage.getItem("starred-entry-ids");
-    if (!fromSession) {
-      return;
+    const storageKey = "visitor-id";
+    let id = window.localStorage.getItem(storageKey);
+    if (!id) {
+      id = window.crypto.randomUUID();
+      window.localStorage.setItem(storageKey, id);
     }
-    try {
-      const parsed = JSON.parse(fromSession) as unknown;
-      if (Array.isArray(parsed) && parsed.every((id) => typeof id === "string")) {
-        setStarredEntryIds(parsed);
-      }
-    } catch {
-      // Ignore invalid session cache.
-    }
+    setVisitorId(id);
   }, []);
 
   useEffect(() => {
@@ -88,6 +123,13 @@ export default function Home() {
       isMounted = false;
     };
   }, [fetchEntries]);
+
+  useEffect(() => {
+    if (!visitorId) {
+      return;
+    }
+    void fetchStarredEntries();
+  }, [fetchStarredEntries, visitorId]);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY) {
@@ -176,20 +218,39 @@ export default function Home() {
     entryId: string,
     options?: StarActionOptions,
   ) {
-    if (starringEntryIds[entryId] || starredEntryIds.includes(entryId)) {
+    if (starringEntryIds[entryId]) {
       return;
     }
+    const wasStarred = starredEntryIds.includes(entryId);
 
     setEntries((previousEntries) =>
       previousEntries.map((entry) =>
-        entry.id === entryId ? { ...entry, stars: entry.stars + 1 } : entry,
+        entry.id === entryId
+          ? { ...entry, stars: Math.max(0, entry.stars + (wasStarred ? -1 : 1)) }
+          : entry,
       ),
     );
+    if (wasStarred) {
+      setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
+      setStarredEntries((previous) => previous.filter((entry) => entry.id !== entryId));
+    } else {
+      setStarredEntryIds((previous) =>
+        previous.includes(entryId) ? previous : [...previous, entryId],
+      );
+    }
     setStarringEntryIds((previous) => ({ ...previous, [entryId]: true }));
 
     try {
-      const response = await fetch(`/api/entries/${entryId}/star`, { method: "POST" });
-      const payload = (await response.json()) as { stars?: number; error?: string };
+      if (!visitorId) {
+        throw new Error("Missing visitor identity.");
+      }
+      const response = await fetch(`/api/entries/${entryId}/star`, {
+        method: wasStarred ? "DELETE" : "POST",
+        headers: {
+          "x-visitor-id": visitorId,
+        },
+      });
+      const payload = (await response.json()) as StarApiResponse;
       if (!response.ok || typeof payload.stars !== "number") {
         throw new Error(payload.error ?? "Failed to star entry.");
       }
@@ -199,23 +260,31 @@ export default function Home() {
           entry.id === entryId ? { ...entry, stars: payload.stars ?? entry.stars } : entry,
         ),
       );
-      setStarredEntryIds((previous) => {
-        if (previous.includes(entryId)) {
-          return previous;
-        }
-        const next = [...previous, entryId];
-        window.sessionStorage.setItem("starred-entry-ids", JSON.stringify(next));
-        return next;
-      });
+      if (payload.alreadyStarred === true || !wasStarred) {
+        setStarredEntryIds((previous) => (previous.includes(entryId) ? previous : [...previous, entryId]));
+      } else if (wasStarred) {
+        setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
+      }
+      void fetchStarredEntries();
       if (options?.closePanelOnSuccess) {
         setOpenPanel(null);
       }
     } catch {
       setEntries((previousEntries) =>
         previousEntries.map((entry) =>
-          entry.id === entryId ? { ...entry, stars: Math.max(0, entry.stars - 1) } : entry,
+          entry.id === entryId
+            ? { ...entry, stars: Math.max(0, entry.stars + (wasStarred ? 1 : -1)) }
+            : entry,
         ),
       );
+      if (wasStarred) {
+        setStarredEntryIds((previous) =>
+          previous.includes(entryId) ? previous : [...previous, entryId],
+        );
+      } else {
+        setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
+      }
+      void fetchStarredEntries();
       setErrorMessage("Could not save your star right now.");
     } finally {
       setStarringEntryIds((previous) => {
@@ -240,6 +309,7 @@ export default function Home() {
         entries={entries}
         isLoading={isLoading}
         isTyping={isTyping}
+        starredEntries={starredEntries}
         openPanel={openPanel}
         setOpenPanel={setOpenPanel}
         onStar={handleStar}
@@ -262,6 +332,7 @@ type ThemedContentProps = {
   entries: Entry[];
   isLoading: boolean;
   isTyping: boolean;
+  starredEntries: Entry[];
   openPanel: PanelType;
   setOpenPanel: (panel: PanelType) => void;
   onStar: (entryId: string, options?: StarActionOptions) => Promise<void>;
@@ -281,6 +352,7 @@ function ThemedContent({
   entries,
   isLoading,
   isTyping,
+  starredEntries,
   openPanel,
   setOpenPanel,
   onStar,
@@ -295,9 +367,6 @@ function ThemedContent({
     limit: 20,
   });
 
-  const starredEntries = liveEntries.filter((entry) =>
-    starredEntryIds.includes(entry.id),
-  );
   const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
 
   useEffect(() => {
@@ -372,6 +441,10 @@ function ThemedContent({
           isOpen={openPanel === "starred"}
           onClose={() => setOpenPanel(null)}
           entries={starredEntries}
+          onStar={(entryId) =>
+            onStar(entryId, { closePanelOnSuccess: window.innerWidth < 768 })
+          }
+          starringEntryIds={starringEntryIds}
         />
         <Hero />
         <InputBox

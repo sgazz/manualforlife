@@ -53,7 +53,9 @@ Pokreni sledeci SQL u Supabase SQL editoru:
 create table if not exists public.entries (
   id uuid primary key default gen_random_uuid(),
   text varchar(175) not null check (char_length(text) between 1 and 175),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  stars integer not null default 0 check (stars >= 0),
+  signature varchar(30)
 );
 
 create table if not exists public.abuse_logs (
@@ -64,6 +66,17 @@ create table if not exists public.abuse_logs (
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+create table if not exists public.entry_stars (
+  id bigint generated always as identity primary key,
+  entry_id uuid not null references public.entries(id) on delete cascade,
+  visitor_id uuid not null,
+  starred_at timestamptz not null default now(),
+  unique (entry_id, visitor_id)
+);
+
+create index if not exists entry_stars_visitor_id_starred_at_idx
+  on public.entry_stars (visitor_id, starred_at desc);
 ```
 
 ## Production security setup
