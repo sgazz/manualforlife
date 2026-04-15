@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Entry = {
   id: string;
   text: string;
   created_at: string;
   stars: number;
+  signature: string | null;
 };
 
 type EntriesListProps = {
@@ -19,7 +20,11 @@ type EntriesListProps = {
 
 const INITIAL_VISIBLE_COUNT = 5;
 
-function formatRelativeTime(dateString: string) {
+function formatRelativeTime(dateString: string, hasMounted: boolean) {
+  if (!hasMounted) {
+    return "recently";
+  }
+
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
     return "recently";
@@ -48,6 +53,16 @@ export function EntriesList({
 }: EntriesListProps) {
   const [showAll, setShowAll] = useState(false);
   const [starError, setStarError] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setHasMounted(true);
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   const visibleEntries = useMemo(() => {
     if (showAll) {
@@ -133,7 +148,9 @@ export function EntriesList({
                   }}
                 >
                   <div className="mb-2 flex items-center justify-between gap-3 text-xs text-[color:var(--theme-muted)]">
-                    <span>{formatRelativeTime(entry.created_at)}</span>
+                    <span suppressHydrationWarning>
+                      {formatRelativeTime(entry.created_at, hasMounted)}
+                    </span>
                     <button
                       type="button"
                       disabled={isStarring || isStarred}
@@ -157,6 +174,11 @@ export function EntriesList({
                   >
                     {entry.text}
                   </p>
+                  {entry.signature ? (
+                    <p className="mt-2 text-sm italic text-[color:var(--theme-muted)]/90">
+                      &mdash; {entry.signature}
+                    </p>
+                  ) : null}
                 </li>
               );
             })}

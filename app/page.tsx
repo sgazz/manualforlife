@@ -1,17 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { EntriesList } from "@/components/EntriesList";
+import { useCallback, useEffect, useState } from "react";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
+import { LivePanel } from "@/components/panels/LivePanel";
+import { StarredPanel } from "@/components/panels/StarredPanel";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { LiveTrigger } from "@/components/triggers/LiveTrigger";
+import { StarredTrigger } from "@/components/triggers/StarredTrigger";
+import { useLiveTraces } from "@/hooks/useLiveTraces";
 import { useTheme } from "@/hooks/useTheme";
+import { useTypingState } from "@/hooks/useTypingState";
 
 type Entry = {
   id: string;
   text: string;
   created_at: string;
   stars: number;
+  signature: string | null;
 };
 
 const MAX_LENGTH = 175;
@@ -30,15 +36,18 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [signature, setSignature] = useState("");
+  const [openPanel, setOpenPanel] = useState<"live" | "starred" | null>(null);
   const [starringEntryIds, setStarringEntryIds] = useState<Record<string, boolean>>(
     {},
   );
   const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
+  const isTyping = useTypingState(text, { idleDelayMs: 2600 });
 
   const fetchEntries = useCallback(async () => {
     const response = await fetch("/api/entries", { method: "GET" });
     const payload = (await response.json()) as {
-      entries?: Array<Entry & { stars?: number }>;
+      entries?: Array<Entry & { stars?: number; signature?: string | null }>;
       error?: string;
     };
 
@@ -50,6 +59,7 @@ export default function Home() {
     const normalizedEntries = (payload.entries ?? []).map((entry) => ({
       ...entry,
       stars: typeof entry.stars === "number" ? entry.stars : 0,
+      signature: typeof entry.signature === "string" ? entry.signature : null,
     }));
     setEntries(normalizedEntries);
     setErrorMessage(null);
@@ -100,42 +110,79 @@ export default function Home() {
     };
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  async function handleSubmit(
+    formOrEvent:
+      | HTMLFormElement
+      | { currentTarget?: EventTarget | null; target?: EventTarget | null },
+  ) {
+    const eventLike =
+      formOrEvent && typeof formOrEvent === "object" ? formOrEvent : null;
+    const form =
+      formOrEvent instanceof HTMLFormElement
+        ? formOrEvent
+        : eventLike?.currentTarget instanceof HTMLFormElement
+          ? eventLike.currentTarget
+          : eventLike?.target instanceof HTMLFormElement
+            ? eventLike.target
+            : null;
+
+    if (!form) {
+      setErrorMessage("Could not read the form. Please try again.");
+      return false;
+    }
+
+    const formData = new FormData(form);
     const website = String(formData.get("website") ?? "");
+    const signatureFromForm = String(formData.get("signature") ?? "")
+      .trim()
+      .slice(0, 30);
 
     const trimmedText = text.trim();
     if (!trimmedText || trimmedText.length > MAX_LENGTH) {
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
     setIsLoading(true);
     setErrorMessage(null);
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          text: trimmedText,
+          website,
+          turnstileToken,
+          signature: signatureFromForm || undefined,
+        }),
+      });
+      const payload = (await response.json()) as { error?: string };
 
-    const response = await fetch("/api/submit", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ text: trimmedText, website, turnstileToken }),
-    });
-    const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setErrorMessage(payload.error ?? "Failed to save entry.");
+        return false;
+      }
 
-    if (!response.ok) {
-      setErrorMessage(payload.error ?? "Failed to save entry.");
-    } else {
       setText("");
+      setSignature("");
       setTurnstileToken("");
       await fetchEntries();
+      return true;
+    } catch {
+      setErrorMessage("Network error. Please try again.");
+      return false;
+    } finally {
+      setIsLoading(false);
+      setIsSubmitting(false);
     }
-
-    setIsLoading(false);
-    setIsSubmitting(false);
   }
 
-  async function handleStar(entryId: string) {
+  async function handleStar(
+    entryId: string,
+    options?: { closePanelOnSuccess?: boolean },
+  ) {
     if (starringEntryIds[entryId] || starredEntryIds.includes(entryId)) {
       return;
     }
@@ -167,13 +214,16 @@ export default function Home() {
         window.sessionStorage.setItem("starred-entry-ids", JSON.stringify(next));
         return next;
       });
+      if (options?.closePanelOnSuccess) {
+        setOpenPanel(null);
+      }
     } catch {
       setEntries((previousEntries) =>
         previousEntries.map((entry) =>
           entry.id === entryId ? { ...entry, stars: Math.max(0, entry.stars - 1) } : entry,
         ),
       );
-      throw new Error("Could not save your star right now.");
+      setErrorMessage("Could not save your star right now.");
     } finally {
       setStarringEntryIds((previous) => {
         const next = { ...previous };
@@ -191,9 +241,14 @@ export default function Home() {
         isSubmitting={isSubmitting}
         turnstileToken={turnstileToken}
         handleSubmit={handleSubmit}
+        signature={signature}
+        setSignature={setSignature}
         errorMessage={errorMessage}
         entries={entries}
         isLoading={isLoading}
+        isTyping={isTyping}
+        openPanel={openPanel}
+        setOpenPanel={setOpenPanel}
         onStar={handleStar}
         starringEntryIds={starringEntryIds}
         starredEntryIds={starredEntryIds}
@@ -207,11 +262,16 @@ type ThemedContentProps = {
   setText: (value: string) => void;
   isSubmitting: boolean;
   turnstileToken: string;
-  handleSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSubmit: (form: HTMLFormElement) => Promise<boolean>;
+  signature: string;
+  setSignature: (value: string) => void;
   errorMessage: string | null;
   entries: Entry[];
   isLoading: boolean;
-  onStar: (entryId: string) => Promise<void>;
+  isTyping: boolean;
+  openPanel: "live" | "starred" | null;
+  setOpenPanel: (panel: "live" | "starred" | null) => void;
+  onStar: (entryId: string, options?: { closePanelOnSuccess?: boolean }) => Promise<void>;
   starringEntryIds: Record<string, boolean>;
   starredEntryIds: string[];
 };
@@ -222,15 +282,30 @@ function ThemedContent({
   isSubmitting,
   turnstileToken,
   handleSubmit,
+  signature,
+  setSignature,
   errorMessage,
   entries,
   isLoading,
+  isTyping,
+  openPanel,
+  setOpenPanel,
   onStar,
   starringEntryIds,
   starredEntryIds,
 }: ThemedContentProps) {
   const { themes, currentTheme, currentThemeIndex } = useTheme();
   const [showHint, setShowHint] = useState(false);
+  const { liveEntries, newlyAddedIds } = useLiveTraces({
+    initialEntries: entries,
+    paused: isTyping,
+    limit: 20,
+  });
+
+  const starredEntries = liveEntries.filter((entry) =>
+    starredEntryIds.includes(entry.id),
+  );
+  const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -275,14 +350,46 @@ function ThemedContent({
         className="w-full max-w-3xl space-y-8 rounded-3xl p-1 transition-transform duration-[400ms]"
         style={{ boxShadow: "var(--theme-shadow-soft)" }}
       >
+        <LiveTrigger
+          isOpen={openPanel === "live"}
+          hasUnread={hasUnreadLiveEntries}
+          onToggle={() =>
+            setOpenPanel(openPanel === "live" ? null : "live")
+          }
+        />
+        <StarredTrigger
+          isOpen={openPanel === "starred"}
+          onToggle={() =>
+            setOpenPanel(openPanel === "starred" ? null : "starred")
+          }
+        />
+        <LivePanel
+          isOpen={openPanel === "live"}
+          onClose={() => setOpenPanel(null)}
+          isLoading={isLoading}
+          entries={liveEntries}
+          newlyAddedIds={newlyAddedIds}
+          onStar={(entryId) =>
+            onStar(entryId, { closePanelOnSuccess: window.innerWidth < 768 })
+          }
+          starringEntryIds={starringEntryIds}
+          starredEntryIds={starredEntryIds}
+        />
+        <StarredPanel
+          isOpen={openPanel === "starred"}
+          onClose={() => setOpenPanel(null)}
+          entries={starredEntries}
+        />
         <Hero />
         <InputBox
           value={text}
+          signature={signature}
           maxLength={MAX_LENGTH}
           isSubmitting={isSubmitting}
           turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
           hasTurnstileToken={Boolean(turnstileToken)}
           onChange={setText}
+          onSignatureChange={setSignature}
           onSubmit={handleSubmit}
         />
         {errorMessage ? (
@@ -297,13 +404,6 @@ function ThemedContent({
             {errorMessage}
           </p>
         ) : null}
-        <EntriesList
-          entries={entries}
-          isLoading={isLoading}
-          onStar={onStar}
-          starringEntryIds={starringEntryIds}
-          starredEntryIds={starredEntryIds}
-        />
         <footer className="pt-2 text-center text-sm text-[color:var(--theme-muted)] transition-colors duration-[400ms]">
           For future generations.
         </footer>

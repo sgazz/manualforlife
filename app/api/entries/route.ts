@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 export async function GET() {
   const { data, error } = await supabaseServer
     .from("entries")
-    .select("id, text, created_at, stars")
+    .select("id, text, created_at, stars, signature")
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -18,6 +18,7 @@ export async function GET() {
   const normalizedEntries = (data ?? []).map((entry) => ({
     ...entry,
     stars: typeof entry.stars === "number" ? entry.stars : 0,
+    signature: typeof entry.signature === "string" ? entry.signature : null,
   }));
 
   return NextResponse.json({ entries: normalizedEntries }, { status: 200 });

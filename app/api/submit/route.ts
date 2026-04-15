@@ -11,12 +11,13 @@ import {
   isTurnstileEnabled,
   validateTurnstileToken,
 } from "@/lib/turnstile";
-import { validateEntryText } from "@/lib/validation";
+import { normalizeSignature, validateEntryText } from "@/lib/validation";
 
 type SubmitPayload = {
   text?: unknown;
   website?: unknown;
   turnstileToken?: unknown;
+  signature?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
   const { error } = await supabaseServer.from("entries").insert({
     text: validation.normalizedText,
     stars: 0,
+    signature: normalizeSignature(payload.signature),
   });
 
   if (error) {
