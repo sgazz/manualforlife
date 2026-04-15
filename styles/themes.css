@@ -1,0 +1,47 @@
+.theme-shell {
+  --theme-bg: radial-gradient(1200px 500px at 20% -20%, #ffffff, transparent 60%),
+    radial-gradient(900px 450px at 100% 0%, #e7ecf8, transparent 50%),
+    linear-gradient(160deg, #f8fafc 0%, #eef2ff 45%, #ecfeff 100%);
+  --theme-text: #0f172a;
+  --theme-muted: #475569;
+  --theme-surface: rgba(255, 255, 255, 0.72);
+  --theme-border: rgba(148, 163, 184, 0.28);
+  --theme-accent: #0f172a;
+  --theme-accent-contrast: #ffffff;
+  --theme-accent-soft: rgba(15, 23, 42, 0.12);
+  --theme-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --theme-shadow-strong: 0 18px 44px rgba(15, 23, 42, 0.14);
+  --theme-glow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  --theme-error-bg: rgba(254, 242, 242, 0.88);
+  --theme-error-border: rgba(252, 165, 165, 0.8);
+  --theme-error-text: #b91c1c;
+  min-height: 100svh;
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  transition:
+    background 400ms ease,
+    color 400ms ease,
+    transform 400ms ease;
+}
+
+.theme-reflection {
+  --theme-bg: radial-gradient(1200px 540px at 20% -10%, #fff8ef, transparent 56%),
+    radial-gradient(980px 460px at 100% 0%, #fef3c7, transparent 48%),
+    linear-gradient(160deg, #fffaf0 0%, #fef9e7 44%, #fff1d6 100%);
+  --theme-text: #3f2a1d;
+  --theme-muted: #6b4a2c;
+  --theme-surface: rgba(255, 250, 239, 0.73);
+  --theme-border: rgba(217, 119, 6, 0.25);
+  --theme-accent: #b45309;
+  --theme-accent-contrast: #fffaf2;
+  --theme-accent-soft: rgba(180, 83, 9, 0.16);
+  --theme-shadow-soft: 0 10px 30px rgba(146, 64, 14, 0.11);
+  --theme-shadow-strong: 0 18px 44px rgba(180, 83, 9, 0.16);
+  --theme-glow: 0 1px 0 rgba(255, 255, 255, 0.42) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-shell {
+    transition: none;
+  }
+}

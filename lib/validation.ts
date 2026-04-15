@@ -48,3 +48,17 @@ export function validateEntryText(input: unknown): ValidationResult {
 }
 
 export const ENTRY_MAX_LENGTH = MAX_LENGTH;
+export const SIGNATURE_MAX_LENGTH = 30;
+
+export function normalizeSignature(input: unknown): string | null {
+  if (typeof input !== "string") {
+    return null;
+  }
+
+  const normalized = input.trim().replace(/\s+/g, " ");
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.slice(0, SIGNATURE_MAX_LENGTH);
+}
