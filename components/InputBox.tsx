@@ -29,7 +29,8 @@ export function InputBox({
   return (
     <form
       onSubmit={onSubmit}
-      className="w-full space-y-4 rounded-2xl border border-slate-200/70 bg-white/70 p-5 shadow-sm backdrop-blur-sm transition-colors sm:p-6"
+      className="w-full space-y-4 rounded-2xl border bg-[color:var(--theme-surface)] p-5 shadow-sm backdrop-blur-sm transition-colors duration-400 sm:p-6"
+      style={{ borderColor: "var(--theme-border)" }}
     >
       <label htmlFor="entry-text" className="sr-only">
         Life lesson text
@@ -48,7 +49,12 @@ export function InputBox({
         onChange={(event) => onChange(event.target.value)}
         maxLength={maxLength}
         placeholder="What is something you wish you knew earlier?"
-        className="min-h-32 w-full resize-none rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-base text-slate-800 outline-none transition duration-200 placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200/70"
+        className="min-h-32 w-full resize-none rounded-xl border px-4 py-3 text-base text-[color:var(--theme-text)] outline-none transition duration-300 placeholder:text-[color:var(--theme-muted)] focus:ring-4"
+        style={{
+          borderColor: "var(--theme-border)",
+          backgroundColor: "color-mix(in srgb, var(--theme-surface) 92%, white 8%)",
+          boxShadow: "none",
+        }}
       />
       {turnstileSiteKey ? (
         <>
@@ -66,13 +72,18 @@ export function InputBox({
         </>
       ) : null}
       <div className="flex items-center justify-between gap-4">
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-[color:var(--theme-muted)] transition-colors duration-[400ms]">
           {value.length} / {maxLength}
         </span>
         <button
           type="submit"
           disabled={isInvalid || isSubmitting}
-          className="rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white transition duration-200 hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-full px-5 py-2 text-sm font-medium transition duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{
+            backgroundColor: "var(--theme-accent)",
+            color: "var(--theme-accent-contrast)",
+            boxShadow: "0 0 0 1px var(--theme-accent-soft) inset",
+          }}
         >
           {isSubmitting ? "Saving..." : "Leave a trace"}
         </button>

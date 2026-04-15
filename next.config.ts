@@ -6,7 +6,9 @@ const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : "";
 
 const cspDirectives = [
   "default-src 'self'",
-  `script-src 'self' https://challenges.cloudflare.com ${isDevelopment ? "'unsafe-eval'" : ""}`.trim(),
+  `script-src 'self' https://challenges.cloudflare.com ${
+    isDevelopment ? "'unsafe-eval' 'unsafe-inline'" : ""
+  }`.trim(),
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",

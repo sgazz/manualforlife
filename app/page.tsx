@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { EntriesList } from "@/components/EntriesList";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { useTheme } from "@/hooks/useTheme";
 
 type Entry = {
   id: string;
@@ -110,8 +112,79 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
-      <div className="w-full max-w-3xl space-y-8">
+    <ThemeProvider>
+      <ThemedContent
+        text={text}
+        setText={setText}
+        isSubmitting={isSubmitting}
+        turnstileToken={turnstileToken}
+        handleSubmit={handleSubmit}
+        errorMessage={errorMessage}
+        entries={entries}
+        isLoading={isLoading}
+      />
+    </ThemeProvider>
+  );
+}
+
+type ThemedContentProps = {
+  text: string;
+  setText: (value: string) => void;
+  isSubmitting: boolean;
+  turnstileToken: string;
+  handleSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  errorMessage: string | null;
+  entries: Entry[];
+  isLoading: boolean;
+};
+
+function ThemedContent({
+  text,
+  setText,
+  isSubmitting,
+  turnstileToken,
+  handleSubmit,
+  errorMessage,
+  entries,
+  isLoading,
+}: ThemedContentProps) {
+  const { currentTheme, currentThemeIndex } = useTheme();
+  const [showHint, setShowHint] = useState(false);
+
+  useEffect(() => {
+    setShowHint(window.localStorage.getItem("theme-hint-dismissed") !== "true");
+  }, []);
+
+  useEffect(() => {
+    if (!showHint) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowHint(false);
+      window.localStorage.setItem("theme-hint-dismissed", "true");
+    }, 4500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [showHint]);
+
+  return (
+    <main className="flex min-h-svh items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
+      <div
+        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide transition-all duration-[400ms] ${
+          showHint ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+        }`}
+        style={{
+          borderColor: "var(--theme-border)",
+          backgroundColor: "var(--theme-surface)",
+          color: "var(--theme-muted)",
+        }}
+      >
+        Shift + scroll or use arrow keys to change mood.
+      </div>
+      <div className="w-full max-w-3xl space-y-8 transition-transform duration-[400ms]">
         <Hero />
         <InputBox
           value={text}
@@ -123,14 +196,24 @@ export default function Home() {
           onSubmit={handleSubmit}
         />
         {errorMessage ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p
+            className="rounded-xl border px-4 py-3 text-sm transition-colors duration-[400ms]"
+            style={{
+              borderColor: "var(--theme-error-border)",
+              backgroundColor: "var(--theme-error-bg)",
+              color: "var(--theme-error-text)",
+            }}
+          >
             {errorMessage}
           </p>
         ) : null}
         <EntriesList entries={entries} isLoading={isLoading} />
-        <footer className="pt-2 text-center text-sm text-slate-500">
+        <footer className="pt-2 text-center text-sm text-[color:var(--theme-muted)] transition-colors duration-[400ms]">
           For future generations.
         </footer>
+        <p className="text-center text-xs tracking-wide text-[color:var(--theme-muted)]/80 transition-colors duration-[400ms]">
+          {currentThemeIndex + 1} / 5 - {currentTheme.label}
+        </p>
       </div>
     </main>
   );
