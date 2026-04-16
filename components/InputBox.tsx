@@ -20,6 +20,8 @@ type InputBoxProps = {
 const SIGNATURE_REVEAL_MIN_LENGTH = 20;
 const SIGNATURE_MAX_LENGTH = 30;
 const SUBMIT_DELAY_MS = 240;
+const COUNTER_THRESHOLDS = [50, 100, 150] as const;
+const COUNTER_FLASH_MS = 3000;
 const PROMPTS = [
   "What would you tell your younger self?",
   "What changed the way you see things?",
@@ -49,6 +51,10 @@ export function InputBox({
   const [isSignatureFocused, setIsSignatureFocused] = useState(false);
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
   const signatureInputRef = useRef<HTMLInputElement | null>(null);
+  const previousLengthRef = useRef(value.length);
+  const currentLengthRef = useRef(value.length);
+  const counterTimeoutRef = useRef<number | null>(null);
+  const [isCounterVisible, setIsCounterVisible] = useState(false);
 
   const requiresTurnstile = Boolean(turnstileSiteKey);
   const normalizedValue = value.trim();
@@ -90,6 +96,81 @@ export function InputBox({
       signatureInputRef.current.value.length,
     );
   }, [canRevealSignature, showSignatureInput]);
+
+  useEffect(() => {
+    const currentLength = value.length;
+    currentLengthRef.current = currentLength;
+    const previousLength = previousLengthRef.current;
+    let visibilityFrame: number | null = null;
+
+    const clearCounterTimeout = () => {
+      if (counterTimeoutRef.current !== null) {
+        window.clearTimeout(counterTimeoutRef.current);
+        counterTimeoutRef.current = null;
+      }
+    };
+
+    const scheduleCounterVisibility = (nextVisible: boolean) => {
+      visibilityFrame = window.setTimeout(() => {
+        setIsCounterVisible(nextVisible);
+      }, 0);
+    };
+
+    const flashCounter = () => {
+      clearCounterTimeout();
+      scheduleCounterVisibility(true);
+      counterTimeoutRef.current = window.setTimeout(() => {
+        if (currentLengthRef.current < maxLength) {
+          setIsCounterVisible(false);
+        }
+      }, COUNTER_FLASH_MS);
+    };
+
+    if (currentLength >= maxLength) {
+      clearCounterTimeout();
+      scheduleCounterVisibility(true);
+      previousLengthRef.current = currentLength;
+      return () => {
+        if (visibilityFrame !== null) {
+          window.clearTimeout(visibilityFrame);
+        }
+      };
+    }
+
+    if (previousLength >= maxLength && currentLength < maxLength) {
+      clearCounterTimeout();
+      scheduleCounterVisibility(false);
+      previousLengthRef.current = currentLength;
+      return () => {
+        if (visibilityFrame !== null) {
+          window.clearTimeout(visibilityFrame);
+        }
+      };
+    }
+
+    const crossedThreshold = COUNTER_THRESHOLDS.some(
+      (threshold) => previousLength < threshold && currentLength >= threshold,
+    );
+
+    if (crossedThreshold) {
+      flashCounter();
+    }
+
+    previousLengthRef.current = currentLength;
+    return () => {
+      if (visibilityFrame !== null) {
+        window.clearTimeout(visibilityFrame);
+      }
+    };
+  }, [maxLength, value.length]);
+
+  useEffect(() => {
+    return () => {
+      if (counterTimeoutRef.current !== null) {
+        window.clearTimeout(counterTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -245,8 +326,13 @@ export function InputBox({
         <div className="flex items-center justify-between gap-4">
           <span
             title={`${Math.max(0, maxLength - value.length)} characters remaining (${value.length}/${maxLength})`}
-            className="text-sm transition-colors duration-300"
-            style={{ color: lengthFeedback.color }}
+            className={`text-sm transition-all duration-300 ${
+              isCounterVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              color: lengthFeedback.color,
+              visibility: isCounterVisible ? "visible" : "hidden",
+            }}
           >
             {value.length} / {maxLength} - {lengthFeedback.label}
           </span>

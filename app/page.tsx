@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
+import { PurposeModal } from "@/components/ui/PurposeModal";
 import { StarredPanel } from "@/components/panels/StarredPanel";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LiveTrigger } from "@/components/triggers/LiveTrigger";
 import { StarredTrigger } from "@/components/triggers/StarredTrigger";
 import { useLiveTraces } from "@/hooks/useLiveTraces";
-import { useTheme } from "@/hooks/useTheme";
 import { useTypingState } from "@/hooks/useTypingState";
 import type {
   Entry,
@@ -357,9 +357,9 @@ function ThemedContent({
   starringEntryIds,
   starredEntryIds,
 }: ThemedContentProps) {
-  const { themes, currentTheme, currentThemeIndex } = useTheme();
   const [showHint, setShowHint] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
+  const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const { liveEntries, newlyAddedIds } = useLiveTraces({
     initialEntries: entries,
     paused: isTyping,
@@ -492,10 +492,17 @@ function ThemedContent({
         <footer className="pt-2 text-center text-sm text-(--theme-muted) transition-colors duration-400">
           For future generations.
         </footer>
-        <p className="text-center text-xs tracking-wide text-(--theme-muted)/80 transition-colors duration-400">
-          {currentThemeIndex + 1} / {themes.length} - {currentTheme.label}
-        </p>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setIsPurposeOpen(true)}
+            className="text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current hover:text-(--theme-muted)"
+          >
+            Why this exists
+          </button>
+        </div>
       </div>
+      <PurposeModal isOpen={isPurposeOpen} onClose={() => setIsPurposeOpen(false)} />
     </main>
   );
 }
