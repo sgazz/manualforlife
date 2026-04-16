@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TraceTransition } from "@/components/TraceTransition";
 import { PanelShell } from "@/components/panels/PanelShell";
 import type { Entry, LoadingEntryMap } from "@/types/ui";
 
@@ -81,7 +82,10 @@ export function StarredPanel({
                     <span>{entry.stars}</span>
                   </button>
                 </div>
-                <p className="font-serif text-lg leading-8 text-(--theme-text)">{entry.text}</p>
+                <TraceTransition
+                  text={entry.text}
+                  className="block font-serif text-lg leading-8 text-(--theme-text)"
+                />
                 {entry.signature ? (
                   <p className="mt-3 text-xs italic text-(--theme-muted)/70">
                     &mdash; {entry.signature}

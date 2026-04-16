@@ -1,7 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Script from "next/script";
+import { RotatingPrompt } from "@/components/RotatingPrompt";
+import { CustomCaret } from "@/components/ui/CustomCaret";
 import { useFocusState } from "@/hooks/useFocusState";
-import { usePlaceholderRotation } from "@/hooks/usePlaceholderRotation";
 
 type InputBoxProps = {
   value: string;
@@ -19,33 +20,13 @@ type InputBoxProps = {
 const SIGNATURE_REVEAL_MIN_LENGTH = 20;
 const SIGNATURE_MAX_LENGTH = 30;
 const SUBMIT_DELAY_MS = 240;
-const WRITING_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
-  reflection: [
-    "What changed the way you see life?",
-    "What thought stayed with you the longest?",
-    "When did you feel most present lately?",
-  ],
-  advice: [
-    "What would you tell your younger self?",
-    "What advice should never be rushed?",
-    "What is worth repeating to someone lost?",
-  ],
-  truth: [
-    "One truth you learned the hard way.",
-    "What became true only after time passed?",
-    "What truth did you resist before accepting?",
-  ],
-  warning: [
-    "What quiet mistake costs more than it seems?",
-    "What should people stop ignoring?",
-    "What warning would you leave for the next person?",
-  ],
-  simplicity: [
-    "Something worth remembering.",
-    "What became easier when you let go?",
-    "What stayed with you?",
-  ],
-};
+const PROMPTS = [
+  "What would you tell your younger self?",
+  "What changed the way you see things?",
+  "What did you learn the hard way?",
+  "What truly matters?",
+  "Say it in one sentence.",
+];
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -65,20 +46,13 @@ export function InputBox({
 }: InputBoxProps) {
   const { isFocused, onFocus, onBlur } = useFocusState();
   const [showSignatureInput, setShowSignatureInput] = useState(false);
+  const [isSignatureFocused, setIsSignatureFocused] = useState(false);
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
+  const signatureInputRef = useRef<HTMLInputElement | null>(null);
 
   const requiresTurnstile = Boolean(turnstileSiteKey);
   const normalizedValue = value.trim();
   const hasText = normalizedValue.length > 0;
-  const isPromptFloating = isFocused || hasText;
-  const { prompt, isVisible } = usePlaceholderRotation({
-    promptsByCategory: WRITING_PROMPTS_BY_CATEGORY,
-    minIntervalMs: 5600,
-    maxIntervalMs: 6800,
-    fadeOutDurationMs: 620,
-    fadeInDurationMs: 620,
-    paused: isFocused || hasText,
-  });
   const canRevealSignature = normalizedValue.length > SIGNATURE_REVEAL_MIN_LENGTH;
 
   const isInvalid =
@@ -104,6 +78,18 @@ export function InputBox({
       label: "Refine it",
     };
   }, [value.length]);
+
+  useEffect(() => {
+    if (!showSignatureInput || !canRevealSignature || !signatureInputRef.current) {
+      return;
+    }
+
+    signatureInputRef.current.focus();
+    signatureInputRef.current.setSelectionRange(
+      signatureInputRef.current.value.length,
+      signatureInputRef.current.value.length,
+    );
+  }, [canRevealSignature, showSignatureInput]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -153,18 +139,7 @@ export function InputBox({
           aria-hidden="true"
         />
         <div className="relative space-y-2">
-          <p
-            aria-hidden="true"
-            className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity duration-620 ease-in-out motion-reduce:transition-none ${
-              isPromptFloating ? "opacity-55" : "opacity-100"
-            } ${isVisible || isPromptFloating ? "opacity-100" : "opacity-0"} ${
-              !isPromptFloating
-                ? "motion-safe:animate-[promptDreamyBlink_9s_ease-in-out_infinite]"
-                : ""
-            }`}
-          >
-            {prompt}
-          </p>
+          <RotatingPrompt prompts={PROMPTS} paused={isFocused || hasText} />
           <textarea
             id="entry-text"
             value={value}
@@ -209,21 +184,28 @@ export function InputBox({
               Would you like to sign it?
             </button>
           ) : (
-            <input
-              type="text"
-              name="signature"
-              value={signature}
-              onChange={(event) =>
-                onSignatureChange(event.target.value.slice(0, SIGNATURE_MAX_LENGTH))
-              }
-              maxLength={SIGNATURE_MAX_LENGTH}
-              placeholder="Your name (optional)"
-              className="typography-ui w-full rounded-lg border px-3 py-2 text-sm text-(--theme-text) outline-none transition placeholder:text-(--theme-muted)/70 focus:ring-2 focus:ring-(--theme-accent-soft)"
-              style={{
-                borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
-                backgroundColor: "color-mix(in srgb, var(--theme-surface) 94%, white 6%)",
-              }}
-            />
+            <div className="relative">
+              <input
+                ref={signatureInputRef}
+                type="text"
+                name="signature"
+                value={signature}
+                onChange={(event) =>
+                  onSignatureChange(event.target.value.slice(0, SIGNATURE_MAX_LENGTH))
+                }
+                onFocus={() => setIsSignatureFocused(true)}
+                onBlur={() => setIsSignatureFocused(false)}
+                maxLength={SIGNATURE_MAX_LENGTH}
+                placeholder="Your name (optional)"
+                className="typography-ui w-full rounded-lg border px-3 py-2 text-sm text-(--theme-text) outline-none transition placeholder:text-(--theme-muted)/70 focus:ring-2 focus:ring-(--theme-accent-soft)"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
+                  backgroundColor: "color-mix(in srgb, var(--theme-surface) 94%, white 6%)",
+                  caretColor: "transparent",
+                }}
+              />
+              <CustomCaret visible={isSignatureFocused} />
+            </div>
           )}
         </div>
 
