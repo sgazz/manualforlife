@@ -9,8 +9,8 @@ const supabaseRealtimeOrigin = supabaseUrl
 
 const cspDirectives = [
   "default-src 'self'",
-  `script-src 'self' https://challenges.cloudflare.com ${
-    isDevelopment ? "'unsafe-eval' 'unsafe-inline'" : ""
+  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com ${
+    isDevelopment ? "'unsafe-eval'" : ""
   }`.trim(),
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
