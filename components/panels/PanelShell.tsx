@@ -104,7 +104,7 @@ export function PanelShell({
         type="button"
         aria-label={`Close ${title} panel`}
         title="Close panel"
-        className="absolute inset-0 bg-black/8 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-[color-mix(in_srgb,var(--theme-text)_16%,transparent)] backdrop-blur-[2px] transition-colors duration-300 ease-in-out"
         onClick={onClose}
       />
       <aside
@@ -113,14 +113,14 @@ export function PanelShell({
         aria-modal="false"
         aria-labelledby={titleId}
         onKeyDown={handleKeyDown}
-        className={`absolute top-0 h-full w-[min(86vw,360px)] ${sideClasses.position} border-[color:var(--theme-border)] bg-[color:var(--theme-surface)]/95 p-4 shadow-[var(--theme-shadow-strong)] backdrop-blur-md transition-transform duration-350 motion-reduce:transition-none ${
+        className={`absolute top-0 h-full w-[min(86vw,360px)] ${sideClasses.position} border-[color-mix(in_srgb,var(--theme-border)_60%,transparent)] bg-[#f8f5f0]/95 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-transform duration-350 ease-in-out motion-reduce:transition-none ${
           isOpen ? "translate-x-0" : sideClasses.hidden
         }`}
       >
         <div className="mb-3 flex items-center justify-between">
           <h3
             id={titleId}
-            className="text-xs tracking-[0.18em] uppercase text-[color:var(--theme-muted)]"
+            className="text-xs tracking-[0.18em] uppercase text-(--theme-muted)"
           >
             {title}
           </h3>
@@ -128,9 +128,9 @@ export function PanelShell({
             type="button"
             onClick={onClose}
             title="Close panel"
-            className="rounded-full border border-[color:var(--theme-border)] px-2 py-1 text-xs text-[color:var(--theme-muted)] transition hover:bg-white/30"
+            className="rounded-full px-2 py-0.5 text-xs text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)"
           >
-            Close
+            ×
           </button>
         </div>
         {children}

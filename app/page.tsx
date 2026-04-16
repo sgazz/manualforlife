@@ -440,6 +440,7 @@ function ThemedContent({
           isOpen={openPanel === "live"}
           onClose={() => setOpenPanel(null)}
           isLoading={isLoading}
+          isTyping={isTyping}
           entries={liveEntries}
           newlyAddedIds={newlyAddedIds}
           onStar={(entryId) =>

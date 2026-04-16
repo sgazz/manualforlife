@@ -2,47 +2,143 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type UsePlaceholderRotationOptions = {
-  prompts: string[];
-  intervalMs?: number;
+type PromptsByCategory = Record<string, readonly string[]>;
+
+type PromptItem = {
+  category: string;
+  text: string;
 };
 
-export function usePlaceholderRotation({
-  prompts,
-  intervalMs = 5200,
-}: UsePlaceholderRotationOptions) {
-  const safePrompts = useMemo(
-    () => (prompts.length > 0 ? prompts : ["Write your trace..."]),
-    [prompts],
+type UsePlaceholderRotationOptions = {
+  promptsByCategory: PromptsByCategory;
+  minIntervalMs?: number;
+  maxIntervalMs?: number;
+  paused?: boolean;
+  fadeDurationMs?: number;
+};
+
+function pickRandom<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function shuffle<T>(items: T[]) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function getRandomDelay(minMs: number, maxMs: number) {
+  return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+}
+
+function buildBalancedBatch(promptsByCategory: PromptsByCategory) {
+  const categories = Object.keys(promptsByCategory).filter(
+    (category) => promptsByCategory[category]?.length > 0,
   );
+  return shuffle(categories).map((category) => ({
+    category,
+    text: pickRandom(promptsByCategory[category]),
+  }));
+}
+
+function buildDeterministicInitialBatch(promptsByCategory: PromptsByCategory) {
+  const categories = Object.keys(promptsByCategory)
+    .filter((category) => promptsByCategory[category]?.length > 0)
+    .sort((a, b) => a.localeCompare(b));
+
+  const batch = categories.map((category) => ({
+    category,
+    text: promptsByCategory[category][0],
+  }));
+
+  return batch.length > 0
+    ? batch
+    : [{ category: "default", text: "Write your trace..." }];
+}
+
+export function usePlaceholderRotation({
+  promptsByCategory,
+  minIntervalMs = 5000,
+  maxIntervalMs = 7000,
+  paused = false,
+  fadeDurationMs = 340,
+}: UsePlaceholderRotationOptions) {
+  const deterministicPromptPool = useMemo(
+    () => buildDeterministicInitialBatch(promptsByCategory),
+    [promptsByCategory],
+  );
+
+  const [queue, setQueue] = useState<PromptItem[]>(deterministicPromptPool);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    if (safePrompts.length <= 1) {
+    setQueue(deterministicPromptPool);
+    setCurrentIndex(0);
+    setIsVisible(true);
+  }, [deterministicPromptPool]);
+
+  useEffect(() => {
+    setQueue(buildBalancedBatch(promptsByCategory));
+    setCurrentIndex(0);
+    setIsVisible(true);
+  }, [promptsByCategory]);
+
+  useEffect(() => {
+    if (paused || queue.length <= 1) {
+      setIsVisible(true);
       return;
     }
 
-    const intervalId = window.setInterval(() => {
-      setIsVisible(false);
+    let rotateTimeoutId: number | undefined;
+    let swapTimeoutId: number | undefined;
 
-      const timeoutId = window.setTimeout(() => {
-        setCurrentIndex((previous) => (previous + 1) % safePrompts.length);
-        setIsVisible(true);
-      }, 180);
+    const scheduleRotation = () => {
+      const delay = getRandomDelay(minIntervalMs, maxIntervalMs);
+      rotateTimeoutId = window.setTimeout(() => {
+        setIsVisible(false);
 
-      return () => {
-        window.clearTimeout(timeoutId);
-      };
-    }, intervalMs);
+        swapTimeoutId = window.setTimeout(() => {
+          setCurrentIndex((previous) => {
+            const nextIndex = previous + 1;
+            if (nextIndex < queue.length) {
+              return nextIndex;
+            }
+
+            setQueue(buildBalancedBatch(promptsByCategory));
+            return 0;
+          });
+          setIsVisible(true);
+          scheduleRotation();
+        }, fadeDurationMs);
+      }, delay);
+    };
+
+    scheduleRotation();
 
     return () => {
-      window.clearInterval(intervalId);
+      if (rotateTimeoutId) {
+        window.clearTimeout(rotateTimeoutId);
+      }
+      if (swapTimeoutId) {
+        window.clearTimeout(swapTimeoutId);
+      }
     };
-  }, [intervalMs, safePrompts.length]);
+  }, [
+    fadeDurationMs,
+    maxIntervalMs,
+    minIntervalMs,
+    paused,
+    promptsByCategory,
+    queue,
+  ]);
 
   return {
-    prompt: safePrompts[currentIndex],
+    prompt: queue[currentIndex]?.text ?? "Write your trace...",
+    promptCategory: queue[currentIndex]?.category ?? "default",
     isVisible,
   };
 }

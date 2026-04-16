@@ -8,6 +8,7 @@ type LivePanelProps = {
   isOpen: boolean;
   onClose: () => void;
   isLoading: boolean;
+  isTyping?: boolean;
   entries: Entry[];
   newlyAddedIds: string[];
   onStar: (entryId: string) => Promise<void>;
@@ -34,6 +35,7 @@ export function LivePanel({
   isOpen,
   onClose,
   isLoading,
+  isTyping = false,
   entries,
   newlyAddedIds,
   onStar,
@@ -53,70 +55,72 @@ export function LivePanel({
 
   return (
     <PanelShell side="left" isOpen={isOpen} onClose={onClose} title="Live Traces">
-      <div className="h-[calc(100vh-5rem)] overflow-y-auto pr-1">
+      <div
+        className={`relative h-[calc(100vh-5rem)] overflow-y-auto pr-1 transition-opacity duration-300 ease-in-out ${
+          isTyping ? "opacity-65" : "opacity-100"
+        }`}
+      >
+        <div className="pointer-events-none sticky top-0 z-10 h-6 bg-linear-to-b from-[#f8f5f0] to-transparent" />
         {isLoading ? (
-          <p className="px-2 py-4 text-sm text-[color:var(--theme-muted)]">
+          <p className="px-2 py-4 text-sm text-(--theme-muted)">
             Loading traces...
           </p>
         ) : (
-          <ul className="space-y-3">
-          {entries.map((entry) => {
-            const isNew = newlyAddedIds.includes(entry.id);
-            const isStarring = Boolean(starringEntryIds[entry.id]);
-            const isStarred = starredEntryIds.includes(entry.id);
-            return (
-              <li
-                key={entry.id}
-                className={`rounded-xl border px-3 py-3 transition-all duration-300 ${
-                  isNew ? "translate-y-0 opacity-100" : "opacity-95"
-                }`}
-                style={{
-                  borderColor: "var(--theme-border)",
-                  backgroundColor: "color-mix(in srgb, var(--theme-surface) 93%, white 7%)",
-                  boxShadow: "var(--theme-glow)",
-                }}
-              >
-                <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-[color:var(--theme-muted)]">
-                  <span suppressHydrationWarning>
-                    <span title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}>
-                      {formatRelativeTime(entry.created_at, hasMounted)}
+          <ul className="space-y-6 pb-6">
+            {entries.map((entry) => {
+              const isNew = newlyAddedIds.includes(entry.id);
+              const isStarring = Boolean(starringEntryIds[entry.id]);
+              const isStarred = starredEntryIds.includes(entry.id);
+              return (
+                <li
+                  key={entry.id}
+                  className={`border-b border-(--theme-border)/35 pb-5 transition-all duration-300 ease-in-out ${
+                    isNew ? "motion-safe:animate-[liveEntryIn_320ms_ease-in-out]" : ""
+                  }`}
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/70">
+                    <span
+                      suppressHydrationWarning
+                      className="group/date inline-flex items-center gap-2"
+                      title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 rounded-full bg-(--theme-muted)/45 transition-colors duration-300 ease-in-out group-hover/date:bg-(--theme-muted)/65"
+                      />
+                      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-in-out group-hover/date:max-w-28 group-hover/date:opacity-100 group-focus-within/date:max-w-28 group-focus-within/date:opacity-100">
+                        {formatRelativeTime(entry.created_at, hasMounted)}
+                      </span>
                     </span>
-                  </span>
-                  <button
-                    type="button"
-                    disabled={isStarring}
-                    onClick={() => void onStar(entry.id)}
-                    title={
-                      isStarred
-                        ? "Remove star"
-                        : isStarring
-                          ? "Saving star..."
-                          : "Add star"
-                    }
-                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 disabled:opacity-50"
-                    style={{
-                      borderColor: "var(--theme-border)",
-                      color: "var(--theme-muted)",
-                      backgroundColor: isStarred
-                        ? "color-mix(in srgb, var(--theme-accent-soft) 65%, white 35%)"
-                        : "transparent",
-                    }}
-                  >
-                    <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
-                    <span>{entry.stars}</span>
-                  </button>
-                </div>
-                <p className="text-sm leading-relaxed text-[color:var(--theme-text)]">{entry.text}</p>
-                {entry.signature ? (
-                  <p className="mt-2 text-xs italic text-[color:var(--theme-muted)]/90">
-                    &mdash; {entry.signature}
-                  </p>
-                ) : null}
-              </li>
-            );
-          })}
+                    <button
+                      type="button"
+                      disabled={isStarring}
+                      onClick={() => void onStar(entry.id)}
+                      title={
+                        isStarred
+                          ? "Remove star"
+                          : isStarring
+                            ? "Saving star..."
+                            : "Add star"
+                      }
+                      className="inline-flex items-center gap-1 text-xs text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted) disabled:opacity-45"
+                    >
+                      <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
+                      <span>{entry.stars}</span>
+                    </button>
+                  </div>
+                  <p className="font-serif text-lg leading-8 text-(--theme-text)">{entry.text}</p>
+                  {entry.signature ? (
+                    <p className="mt-3 text-xs italic text-(--theme-muted)/70">
+                      &mdash; {entry.signature}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         )}
+        <div className="pointer-events-none sticky bottom-0 z-10 h-8 bg-linear-to-t from-[#f8f5f0] to-transparent" />
       </div>
     </PanelShell>
   );

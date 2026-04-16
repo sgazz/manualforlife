@@ -19,13 +19,33 @@ type InputBoxProps = {
 const SIGNATURE_REVEAL_MIN_LENGTH = 20;
 const SIGNATURE_MAX_LENGTH = 30;
 const SUBMIT_DELAY_MS = 240;
-const WRITING_PROMPTS = [
-  "What changed the way you see life?",
-  "What would you tell your younger self?",
-  "One truth you learned the hard way.",
-  "Something worth remembering.",
-  "What stayed with you?",
-];
+const WRITING_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
+  reflection: [
+    "What changed the way you see life?",
+    "What thought stayed with you the longest?",
+    "When did you feel most present lately?",
+  ],
+  advice: [
+    "What would you tell your younger self?",
+    "What advice should never be rushed?",
+    "What is worth repeating to someone lost?",
+  ],
+  truth: [
+    "One truth you learned the hard way.",
+    "What became true only after time passed?",
+    "What truth did you resist before accepting?",
+  ],
+  warning: [
+    "What quiet mistake costs more than it seems?",
+    "What should people stop ignoring?",
+    "What warning would you leave for the next person?",
+  ],
+  simplicity: [
+    "Something worth remembering.",
+    "What became easier when you let go?",
+    "What stayed with you?",
+  ],
+};
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,12 +64,17 @@ export function InputBox({
   onFocusChange,
 }: InputBoxProps) {
   const { isFocused, onFocus, onBlur } = useFocusState();
-  const { prompt, isVisible } = usePlaceholderRotation({ prompts: WRITING_PROMPTS });
   const [showSignatureInput, setShowSignatureInput] = useState(false);
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
   const requiresTurnstile = Boolean(turnstileSiteKey);
   const normalizedValue = value.trim();
+  const hasText = normalizedValue.length > 0;
+  const isPromptFloating = isFocused || hasText;
+  const { prompt, isVisible } = usePlaceholderRotation({
+    promptsByCategory: WRITING_PROMPTS_BY_CATEGORY,
+    paused: isFocused || hasText,
+  });
   const canRevealSignature = normalizedValue.length > SIGNATURE_REVEAL_MIN_LENGTH;
 
   const isInvalid =
@@ -123,7 +148,17 @@ export function InputBox({
           className="hidden"
           aria-hidden="true"
         />
-        <div className="relative">
+        <div className="relative space-y-2">
+          <p
+            aria-hidden="true"
+            className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+              isPromptFloating ? "opacity-55" : "opacity-100"
+            } ${isVisible || isPromptFloating ? "opacity-100" : "opacity-0"} ${
+              !isPromptFloating ? "motion-safe:animate-[promptBreath_8s_ease-in-out_infinite]" : ""
+            }`}
+          >
+            {prompt}
+          </p>
           <textarea
             id="entry-text"
             value={value}
@@ -137,8 +172,7 @@ export function InputBox({
               onFocusChange?.(false);
             }}
             maxLength={maxLength}
-            placeholder={prompt}
-            className="typography-ui min-h-40 w-full resize-none rounded-xl border-b px-6 py-5 text-lg leading-8 text-(--theme-text) outline-none transition duration-300 placeholder:text-transparent focus:ring-0 motion-reduce:transition-none"
+            className="typography-ui min-h-40 w-full resize-none rounded-xl border-b px-6 py-5 text-lg leading-8 text-(--theme-text) outline-none transition duration-300 focus:ring-0 motion-reduce:transition-none"
             style={{
               borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",
               backgroundColor: "color-mix(in srgb, var(--theme-surface) 96%, white 4%)",
@@ -147,16 +181,6 @@ export function InputBox({
                 : "inset 0 -1px 0 color-mix(in srgb, var(--theme-border) 45%, transparent)",
             }}
           />
-          {value.length === 0 ? (
-            <span
-              aria-hidden="true"
-              className={`typography-ui pointer-events-none absolute top-4 left-5 right-5 text-(--theme-muted)/50 transition-opacity duration-300 motion-reduce:transition-none ${
-                isVisible ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {prompt}
-            </span>
-          ) : null}
         </div>
 
         <p className="typography-hint text-(--theme-muted)/75">
