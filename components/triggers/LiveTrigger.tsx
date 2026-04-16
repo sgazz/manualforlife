@@ -3,12 +3,14 @@
 type LiveTriggerProps = {
   isOpen: boolean;
   hasUnread?: boolean;
+  isFocusModeActive?: boolean;
   onToggle: () => void;
 };
 
 export function LiveTrigger({
   isOpen,
   hasUnread = false,
+  isFocusModeActive = false,
   onToggle,
 }: LiveTriggerProps) {
   return (
@@ -18,11 +20,11 @@ export function LiveTrigger({
       aria-label="Toggle live traces panel"
       aria-expanded={isOpen}
       onClick={onToggle}
-      className={`fixed top-1/2 left-5 z-30 flex h-14 w-8 -translate-y-1/2 items-center justify-center rounded-[999px] border text-sm shadow-(--theme-shadow-strong) backdrop-blur-sm transition duration-300 hover:scale-105 hover:opacity-100 ${
+      className={`fixed top-1/2 left-5 z-30 flex h-14 w-8 -translate-y-1/2 items-center justify-center rounded-[999px] border text-sm shadow-(--theme-shadow-soft) backdrop-blur-sm transition duration-300 hover:opacity-60 ${
         isOpen
           ? "opacity-100 border-(--theme-accent) bg-(--theme-accent) text-(--theme-accent-contrast)"
-          : "opacity-80 border-(--theme-accent-soft) bg-(--theme-surface)/90 text-(--theme-text)"
-      }`}
+          : "opacity-30 border-(--theme-accent-soft) bg-(--theme-surface)/85 text-(--theme-text)"
+      } ${isFocusModeActive && !isOpen ? "opacity-15" : ""}`}
     >
       <svg
         aria-hidden="true"

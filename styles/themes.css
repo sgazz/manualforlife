@@ -24,19 +24,36 @@
     transform 400ms ease;
 }
 
+.theme-shell::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.028;
+  background-image: radial-gradient(rgba(58, 43, 28, 0.22) 0.55px, transparent 0.55px);
+  background-size: 3px 3px;
+  mix-blend-mode: multiply;
+}
+
+.theme-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
 .theme-reflection {
-  --theme-bg: radial-gradient(1200px 540px at 20% -10%, #fff8ef, transparent 56%),
-    radial-gradient(980px 460px at 100% 0%, #fef3c7, transparent 48%),
-    linear-gradient(160deg, #fffaf0 0%, #fef9e7 44%, #fff1d6 100%);
+  --theme-bg: radial-gradient(1120px 500px at 18% -12%, #fbf4ea, transparent 58%),
+    radial-gradient(900px 420px at 100% 0%, #f3e8d9, transparent 50%),
+    linear-gradient(160deg, #f5efe6 0%, #efe6da 46%, #eae0d5 100%);
   --theme-text: #3f2a1d;
   --theme-muted: #6b4a2c;
-  --theme-surface: rgba(255, 250, 239, 0.73);
-  --theme-border: rgba(217, 119, 6, 0.25);
+  --theme-surface: #faf7f2;
+  --theme-border: rgba(180, 129, 84, 0.16);
   --theme-accent: #b45309;
   --theme-accent-contrast: #fffaf2;
   --theme-accent-soft: rgba(180, 83, 9, 0.16);
-  --theme-shadow-soft: 0 10px 30px rgba(146, 64, 14, 0.11);
-  --theme-shadow-strong: 0 18px 44px rgba(180, 83, 9, 0.16);
+  --theme-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --theme-shadow-strong: 0 14px 34px rgba(84, 45, 24, 0.1);
   --theme-glow: 0 1px 0 rgba(255, 255, 255, 0.42) inset;
 }
 

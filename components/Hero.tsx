@@ -1,3 +1,5 @@
+import { Title } from "@/components/Title";
+
 export function Hero() {
   return (
     <section className="space-y-5 text-center">
@@ -26,15 +28,9 @@ export function Hero() {
             strokeLinejoin="round"
           />
         </svg>
-        <h1
-          className="mt-1 font-(--font-display) text-[2.7rem] leading-none tracking-tight text-(--theme-text) transition-colors duration-400 sm:text-[3.5rem]"
-          style={{ textShadow: "0 1px 0 rgba(255, 255, 255, 0.18)", fontWeight: 500 }}
-        >
-          <span>Manualfor.</span>
-          <span>life</span>
-        </h1>
+        <Title className="mt-1 transition-colors duration-400" />
       </div>
-      <p className="mx-auto max-w-2xl text-base leading-relaxed text-(--theme-muted) transition-colors duration-400 sm:text-lg">
+      <p className="typography-ui mx-auto max-w-2xl text-(--theme-muted) transition-colors duration-400 sm:text-lg">
         This is a place where people leave one thought that changed their life.
         <br />
         Write yours - for someone you will never meet.

@@ -1,3 +1,4 @@
+@config "../tailwind.config.js";
 @import "tailwindcss";
 @import "../styles/themes.css";
 
@@ -9,21 +10,85 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-playfair-display);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-cormorant);
   --font-script: var(--font-caveat);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   overflow-y: auto;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html,
 body {
   height: 100%;
+}
+
+.typography-title {
+  font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+  font-size: clamp(1.875rem, 6vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  color: color-mix(in srgb, var(--theme-text) 96%, var(--theme-muted) 4%);
+  text-wrap: balance;
+}
+
+.typography-trace {
+  font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+  font-size: clamp(1.125rem, 2.4vw, 1.25rem);
+  line-height: 1.72;
+  letter-spacing: 0.002em;
+  color: color-mix(in srgb, var(--theme-text) 94%, var(--theme-muted) 6%);
+  max-width: 62ch;
+}
+
+.typography-trace-short {
+  line-height: 1.82;
+}
+
+.typography-signature {
+  font-family: var(--font-cormorant), "Cormorant Garamond", serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--theme-muted) 90%, var(--theme-text) 10%);
+  font-style: italic;
+}
+
+.typography-ui {
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--theme-text) 92%, var(--theme-muted) 8%);
+}
+
+.typography-hint {
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--theme-muted) 92%, var(--theme-text) 8%);
+}
+
+.reading-block {
+  max-width: 65ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  .typography-title {
+    color: color-mix(in srgb, var(--theme-text) 95%, var(--theme-muted) 5%);
+  }
+
+  .typography-trace {
+    color: color-mix(in srgb, var(--theme-text) 93%, var(--theme-muted) 7%);
+  }
 }

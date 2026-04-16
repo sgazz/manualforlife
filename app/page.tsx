@@ -200,8 +200,6 @@ export default function Home() {
         return false;
       }
 
-      setText("");
-      setSignature("");
       setTurnstileToken("");
       await fetchEntries();
       return true;
@@ -361,6 +359,7 @@ function ThemedContent({
 }: ThemedContentProps) {
   const { themes, currentTheme, currentThemeIndex } = useTheme();
   const [showHint, setShowHint] = useState(false);
+  const [isWritingFocused, setIsWritingFocused] = useState(false);
   const { liveEntries, newlyAddedIds } = useLiveTraces({
     initialEntries: entries,
     paused: isTyping,
@@ -368,6 +367,7 @@ function ThemedContent({
   });
 
   const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
+  const isFocusModeActive = isTyping || (isWritingFocused && text.trim().length > 0);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -394,9 +394,19 @@ function ThemedContent({
   }, [showHint]);
 
   return (
-    <main className="flex min-h-svh items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
+    <main className="relative flex min-h-svh items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
       <div
-        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide backdrop-blur-md transition-all duration-[400ms] ${
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
+          isFocusModeActive ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          background:
+            "radial-gradient(circle at center, transparent 22%, color-mix(in srgb, var(--theme-text) 14%, transparent) 100%)",
+        }}
+      />
+      <div
+        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide backdrop-blur-md transition-all duration-400 ${
           showHint ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
         style={{
@@ -409,18 +419,19 @@ function ThemedContent({
         Shift + scroll or use arrow keys to change mood.
       </div>
       <div
-        className="w-full max-w-3xl space-y-8 rounded-3xl p-1 transition-transform duration-[400ms]"
-        style={{ boxShadow: "var(--theme-shadow-soft)" }}
+        className="relative z-10 w-full max-w-3xl space-y-10 rounded-3xl transition-transform duration-400"
       >
         <LiveTrigger
           isOpen={openPanel === "live"}
           hasUnread={hasUnreadLiveEntries}
+          isFocusModeActive={isFocusModeActive}
           onToggle={() =>
             setOpenPanel(openPanel === "live" ? null : "live")
           }
         />
         <StarredTrigger
           isOpen={openPanel === "starred"}
+          isFocusModeActive={isFocusModeActive}
           onToggle={() =>
             setOpenPanel(openPanel === "starred" ? null : "starred")
           }
@@ -446,7 +457,13 @@ function ThemedContent({
           }
           starringEntryIds={starringEntryIds}
         />
-        <Hero />
+        <div
+          className={`transition-opacity duration-300 motion-reduce:transition-none ${
+            isFocusModeActive ? "opacity-70" : "opacity-100"
+          }`}
+        >
+          <Hero />
+        </div>
         <InputBox
           value={text}
           signature={signature}
@@ -457,10 +474,11 @@ function ThemedContent({
           onChange={setText}
           onSignatureChange={setSignature}
           onSubmit={handleSubmit}
+          onFocusChange={setIsWritingFocused}
         />
         {errorMessage ? (
           <p
-            className="rounded-xl border px-4 py-3 text-sm transition-colors duration-[400ms]"
+            className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
             style={{
               borderColor: "var(--theme-error-border)",
               backgroundColor: "var(--theme-error-bg)",
@@ -470,10 +488,10 @@ function ThemedContent({
             {errorMessage}
           </p>
         ) : null}
-        <footer className="pt-2 text-center text-sm text-[color:var(--theme-muted)] transition-colors duration-[400ms]">
+        <footer className="pt-2 text-center text-sm text-(--theme-muted) transition-colors duration-400">
           For future generations.
         </footer>
-        <p className="text-center text-xs tracking-wide text-[color:var(--theme-muted)]/80 transition-colors duration-[400ms]">
+        <p className="text-center text-xs tracking-wide text-(--theme-muted)/80 transition-colors duration-400">
           {currentThemeIndex + 1} / {themes.length} - {currentTheme.label}
         </p>
       </div>

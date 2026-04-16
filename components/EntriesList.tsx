@@ -12,6 +12,7 @@ type EntriesListProps = {
 };
 
 const INITIAL_VISIBLE_COUNT = 5;
+const SHORT_TRACE_LENGTH = 86;
 
 function formatRelativeTime(dateString: string, hasMounted: boolean) {
   if (!hasMounted) {
@@ -79,17 +80,14 @@ export function EntriesList({
 
   return (
     <section
-      className="w-full rounded-2xl border bg-[color:var(--theme-surface)] p-5 backdrop-blur-md transition-all duration-400 sm:p-6"
-      style={{
-        borderColor: "var(--theme-border)",
-        boxShadow: "var(--theme-shadow-soft), var(--theme-glow)",
-      }}
+      className="w-full rounded-2xl bg-(--theme-surface) p-5 transition-all duration-400 sm:p-6"
+      style={{ boxShadow: "var(--theme-shadow-soft)" }}
     >
-      <h2 className="mb-4 text-sm font-medium tracking-wide text-[color:var(--theme-muted)] uppercase transition-colors duration-[400ms]">
+      <h2 className="mb-4 text-sm font-medium tracking-wide text-(--theme-muted) uppercase transition-colors duration-400">
         Latest traces
       </h2>
       {starError ? (
-        <p className="mb-3 text-xs text-[color:var(--theme-error-text)]">{starError}</p>
+        <p className="mb-3 text-xs text-(--theme-error-text)">{starError}</p>
       ) : null}
 
       {isLoading ? (
@@ -120,7 +118,7 @@ export function EntriesList({
           ))}
         </div>
       ) : entries.length === 0 ? (
-        <p className="py-4 text-sm text-[color:var(--theme-muted)]">
+        <p className="py-4 text-sm text-(--theme-muted)">
           No entries yet. Leave the first trace.
         </p>
       ) : (
@@ -140,7 +138,7 @@ export function EntriesList({
                     boxShadow: "var(--theme-glow)",
                   }}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-3 text-xs text-[color:var(--theme-muted)]">
+                  <div className="mb-2 flex items-center justify-between gap-3 text-xs text-(--theme-muted)">
                     <span suppressHydrationWarning>
                       <span title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}>
                         {formatRelativeTime(entry.created_at, hasMounted)}
@@ -171,13 +169,15 @@ export function EntriesList({
                     </button>
                   </div>
                   <p
-                    className="text-base leading-relaxed text-[color:var(--theme-text)] transition-colors duration-[400ms]"
+                    className={`typography-trace reading-block transition-colors duration-400 ${
+                      entry.text.length <= SHORT_TRACE_LENGTH ? "typography-trace-short" : ""
+                    }`}
                     style={{ textShadow: "0 1px 0 rgba(255, 255, 255, 0.15)" }}
                   >
                     {entry.text}
                   </p>
                   {entry.signature ? (
-                    <p className="mt-2 text-sm italic text-[color:var(--theme-muted)]/90">
+                    <p className="typography-signature mt-2 text-(--theme-muted)/90">
                       &mdash; {entry.signature}
                     </p>
                   ) : null}
