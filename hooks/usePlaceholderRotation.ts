@@ -18,7 +18,7 @@ type UsePlaceholderRotationOptions = {
   fadeInDurationMs?: number;
 };
 
-function pickRandom<T>(items: T[]) {
+function pickRandom<T>(items: readonly T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
@@ -78,20 +78,31 @@ export function usePlaceholderRotation({
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    setQueue(deterministicPromptPool);
-    setCurrentIndex(0);
-    setIsVisible(true);
+    const resetId = window.setTimeout(() => {
+      setQueue(deterministicPromptPool);
+      setCurrentIndex(0);
+      setIsVisible(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(resetId);
+    };
   }, [deterministicPromptPool]);
 
   useEffect(() => {
-    setQueue(buildBalancedBatch(promptsByCategory));
-    setCurrentIndex(0);
-    setIsVisible(true);
+    const randomizeId = window.setTimeout(() => {
+      setQueue(buildBalancedBatch(promptsByCategory));
+      setCurrentIndex(0);
+      setIsVisible(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(randomizeId);
+    };
   }, [promptsByCategory]);
 
   useEffect(() => {
     if (paused || queue.length <= 1) {
-      setIsVisible(true);
       return;
     }
 
@@ -148,6 +159,6 @@ export function usePlaceholderRotation({
   return {
     prompt: queue[currentIndex]?.text ?? "Write your trace...",
     promptCategory: queue[currentIndex]?.category ?? "default",
-    isVisible,
+    isVisible: paused ? true : isVisible,
   };
 }
