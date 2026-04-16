@@ -14,7 +14,8 @@ type UsePlaceholderRotationOptions = {
   minIntervalMs?: number;
   maxIntervalMs?: number;
   paused?: boolean;
-  fadeDurationMs?: number;
+  fadeOutDurationMs?: number;
+  fadeInDurationMs?: number;
 };
 
 function pickRandom<T>(items: T[]) {
@@ -64,7 +65,8 @@ export function usePlaceholderRotation({
   minIntervalMs = 5000,
   maxIntervalMs = 7000,
   paused = false,
-  fadeDurationMs = 340,
+  fadeOutDurationMs = 620,
+  fadeInDurationMs = 620,
 }: UsePlaceholderRotationOptions) {
   const deterministicPromptPool = useMemo(
     () => buildDeterministicInitialBatch(promptsByCategory),
@@ -95,6 +97,7 @@ export function usePlaceholderRotation({
 
     let rotateTimeoutId: number | undefined;
     let swapTimeoutId: number | undefined;
+    let fadeInTimeoutId: number | undefined;
 
     const scheduleRotation = () => {
       const delay = getRandomDelay(minIntervalMs, maxIntervalMs);
@@ -112,8 +115,10 @@ export function usePlaceholderRotation({
             return 0;
           });
           setIsVisible(true);
-          scheduleRotation();
-        }, fadeDurationMs);
+          fadeInTimeoutId = window.setTimeout(() => {
+            scheduleRotation();
+          }, fadeInDurationMs);
+        }, fadeOutDurationMs);
       }, delay);
     };
 
@@ -126,9 +131,13 @@ export function usePlaceholderRotation({
       if (swapTimeoutId) {
         window.clearTimeout(swapTimeoutId);
       }
+      if (fadeInTimeoutId) {
+        window.clearTimeout(fadeInTimeoutId);
+      }
     };
   }, [
-    fadeDurationMs,
+    fadeInDurationMs,
+    fadeOutDurationMs,
     maxIntervalMs,
     minIntervalMs,
     paused,

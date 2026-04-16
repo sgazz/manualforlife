@@ -83,13 +83,24 @@ body {
   max-width: 65ch;
 }
 
-@keyframes promptBreath {
+@keyframes promptDreamyBlink {
   0%,
+  82%,
   100% {
     opacity: 0.94;
+    filter: blur(0);
   }
-  50% {
-    opacity: 1;
+  86% {
+    opacity: 0.58;
+    filter: blur(0.3px);
+  }
+  89% {
+    opacity: 0.38;
+    filter: blur(0.55px);
+  }
+  92% {
+    opacity: 0.78;
+    filter: blur(0.18px);
   }
 }
 

@@ -73,6 +73,10 @@ export function InputBox({
   const isPromptFloating = isFocused || hasText;
   const { prompt, isVisible } = usePlaceholderRotation({
     promptsByCategory: WRITING_PROMPTS_BY_CATEGORY,
+    minIntervalMs: 5600,
+    maxIntervalMs: 6800,
+    fadeOutDurationMs: 620,
+    fadeInDurationMs: 620,
     paused: isFocused || hasText,
   });
   const canRevealSignature = normalizedValue.length > SIGNATURE_REVEAL_MIN_LENGTH;
@@ -151,10 +155,12 @@ export function InputBox({
         <div className="relative space-y-2">
           <p
             aria-hidden="true"
-            className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity duration-300 ease-in-out motion-reduce:transition-none ${
+            className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity duration-620 ease-in-out motion-reduce:transition-none ${
               isPromptFloating ? "opacity-55" : "opacity-100"
             } ${isVisible || isPromptFloating ? "opacity-100" : "opacity-0"} ${
-              !isPromptFloating ? "motion-safe:animate-[promptBreath_8s_ease-in-out_infinite]" : ""
+              !isPromptFloating
+                ? "motion-safe:animate-[promptDreamyBlink_9s_ease-in-out_infinite]"
+                : ""
             }`}
           >
             {prompt}
