@@ -51,7 +51,7 @@ export function TraceTransition({ text, className = "" }: TraceTransitionProps) 
       let nextInQueue: string | null = nextText;
 
       while (nextInQueue !== null) {
-        const currentTarget = nextInQueue;
+        const targetText: string = nextInQueue;
         const nextTimings = getTimings();
         setDurations(nextTimings);
 
@@ -60,7 +60,7 @@ export function TraceTransition({ text, className = "" }: TraceTransitionProps) 
         await wait(nextTimings.close);
 
         setState("paused");
-        setDisplayedText(currentTarget);
+        setDisplayedText(targetText);
         await wait(nextTimings.pause);
 
         setState("opening");
@@ -68,7 +68,7 @@ export function TraceTransition({ text, className = "" }: TraceTransitionProps) 
 
         setState("idle");
 
-        if (pendingTextRef.current && pendingTextRef.current !== currentTarget) {
+        if (pendingTextRef.current && pendingTextRef.current !== targetText) {
           nextInQueue = pendingTextRef.current;
           pendingTextRef.current = null;
         } else {
