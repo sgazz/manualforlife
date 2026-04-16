@@ -104,7 +104,9 @@ export function PanelShell({
         type="button"
         aria-label={`Close ${title} panel`}
         title="Close panel"
-        className="absolute inset-0 bg-[color-mix(in_srgb,var(--theme-text)_16%,transparent)] backdrop-blur-[2px] transition-colors duration-300 ease-in-out"
+        className={`absolute inset-0 bg-[color-mix(in_srgb,var(--theme-text)_16%,transparent)] backdrop-blur-[2px] transition-colors duration-300 ease-in-out ${
+          isOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
         onClick={onClose}
       />
       <aside
@@ -115,7 +117,7 @@ export function PanelShell({
         onKeyDown={handleKeyDown}
         className={`absolute top-0 h-full w-[min(86vw,360px)] ${sideClasses.position} border-[color-mix(in_srgb,var(--theme-border)_60%,transparent)] bg-[#f8f5f0]/95 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-transform duration-350 ease-in-out motion-reduce:transition-none ${
           isOpen ? "translate-x-0" : sideClasses.hidden
-        }`}
+        } ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
       >
         <div className="mb-3 flex items-center justify-between">
           <h3
