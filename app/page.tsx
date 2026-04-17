@@ -474,7 +474,7 @@ function ThemedContent({
   }, [isLoadingOlder, nextCursor, recentEntries, setErrorMessage]);
 
   return (
-    <main className="relative flex min-h-[100vh] min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
+    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
