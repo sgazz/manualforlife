@@ -23,6 +23,10 @@ const MAX_LENGTH = 175;
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const RECENT_LIVE_LIMIT = 12;
 const OLDER_BATCH_SIZE = 12;
+type EntriesCursor = {
+  beforeCreatedAt: string;
+  beforeId: string;
+};
 
 declare global {
   interface Window {
@@ -45,6 +49,7 @@ export default function Home() {
   const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
   const [starredEntries, setStarredEntries] = useState<Entry[]>([]);
   const [visitorId, setVisitorId] = useState<string | null>(null);
+  const [initialNextCursor, setInitialNextCursor] = useState<EntriesCursor | null>(null);
   const isTyping = useTypingState(text, { idleDelayMs: 2600 });
 
   const fetchStarredEntries = useCallback(async () => {
@@ -80,9 +85,12 @@ export default function Home() {
   }, [visitorId]);
 
   const fetchEntries = useCallback(async () => {
-    const response = await fetch("/api/entries", { method: "GET" });
+    const response = await fetch(`/api/entries?limit=${RECENT_LIVE_LIMIT}`, {
+      method: "GET",
+    });
     const payload = (await response.json()) as {
       entries?: Array<Entry & { stars?: number; signature?: string | null }>;
+      nextCursor?: EntriesCursor | null;
       error?: string;
     };
 
@@ -97,6 +105,7 @@ export default function Home() {
       signature: typeof entry.signature === "string" ? entry.signature : null,
     }));
     setEntries(normalizedEntries);
+    setInitialNextCursor(payload.nextCursor ?? null);
     setErrorMessage(null);
   }, []);
 
@@ -315,6 +324,8 @@ export default function Home() {
         onStar={handleStar}
         starringEntryIds={starringEntryIds}
         starredEntryIds={starredEntryIds}
+        initialNextCursor={initialNextCursor}
+        setErrorMessage={setErrorMessage}
       />
     </ThemeProvider>
   );
@@ -338,6 +349,8 @@ type ThemedContentProps = {
   onStar: (entryId: string, options?: StarActionOptions) => Promise<void>;
   starringEntryIds: LoadingEntryMap;
   starredEntryIds: string[];
+  initialNextCursor: EntriesCursor | null;
+  setErrorMessage: (value: string | null) => void;
 };
 
 function ThemedContent({
@@ -358,19 +371,21 @@ function ThemedContent({
   onStar,
   starringEntryIds,
   starredEntryIds,
+  initialNextCursor,
+  setErrorMessage,
 }: ThemedContentProps) {
   const [showHint, setShowHint] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const [olderEntries, setOlderEntries] = useState<Entry[]>([]);
-  const [olderCursor, setOlderCursor] = useState<string | null>(null);
-  const [hasMoreOlderEntries, setHasMoreOlderEntries] = useState(true);
-  const [isLoadingOlderEntries, setIsLoadingOlderEntries] = useState(false);
+  const [nextCursor, setNextCursor] = useState<EntriesCursor | null>(null);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const { liveEntries, newlyAddedIds } = useLiveTraces({
     initialEntries: entries,
     paused: isTyping,
     limit: RECENT_LIVE_LIMIT,
   });
+  const recentEntries = liveEntries;
 
   const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
   const hasStartedThought = text.trim().length > 0;
@@ -402,25 +417,32 @@ function ThemedContent({
 
   useEffect(() => {
     setOlderEntries([]);
-    const oldestRecent = entries[entries.length - 1];
-    setOlderCursor(oldestRecent?.created_at ?? null);
-    setHasMoreOlderEntries(entries.length >= RECENT_LIVE_LIMIT);
-  }, [entries]);
+    setNextCursor(initialNextCursor);
+  }, [entries, initialNextCursor]);
+
+  useEffect(() => {
+    setOlderEntries((previous) => {
+      if (previous.length === 0) {
+        return previous;
+      }
+      const recentIds = new Set(recentEntries.map((entry) => entry.id));
+      return previous.filter((entry) => !recentIds.has(entry.id));
+    });
+  }, [recentEntries]);
 
   const loadOlderEntries = useCallback(async () => {
-    if (isLoadingOlderEntries || !hasMoreOlderEntries || !olderCursor) {
+    if (isLoadingOlder || !nextCursor) {
       return;
     }
 
-    setIsLoadingOlderEntries(true);
+    setIsLoadingOlder(true);
     try {
       const response = await fetch(
-        `/api/entries?limit=${OLDER_BATCH_SIZE}&before=${encodeURIComponent(olderCursor)}`,
+        `/api/entries?limit=${OLDER_BATCH_SIZE}&beforeCreatedAt=${encodeURIComponent(nextCursor.beforeCreatedAt)}&beforeId=${encodeURIComponent(nextCursor.beforeId)}`,
       );
       const payload = (await response.json()) as {
         entries?: Array<Entry & { stars?: number; signature?: string | null }>;
-        nextCursor?: string | null;
-        hasMore?: boolean;
+        nextCursor?: EntriesCursor | null;
         error?: string;
       };
 
@@ -435,19 +457,21 @@ function ThemedContent({
       }));
 
       setOlderEntries((previous) => {
-        const merged = [...previous, ...normalized];
+        const recentIds = new Set(recentEntries.map((entry) => entry.id));
+        const merged = [...previous, ...normalized].filter((entry) => !recentIds.has(entry.id));
         return merged.filter(
-          (entry, index, array) => array.findIndex((candidate) => candidate.id === entry.id) === index,
+          (entry, index, array) =>
+            array.findIndex((candidate) => candidate.id === entry.id) === index,
         );
       });
-      setOlderCursor(payload.nextCursor ?? null);
-      setHasMoreOlderEntries(Boolean(payload.hasMore));
+      setNextCursor(payload.nextCursor ?? null);
+      setErrorMessage(null);
     } catch {
-      setHasMoreOlderEntries(false);
+      setErrorMessage("Could not load earlier traces right now. Please try again.");
     } finally {
-      setIsLoadingOlderEntries(false);
+      setIsLoadingOlder(false);
     }
-  }, [hasMoreOlderEntries, isLoadingOlderEntries, olderCursor]);
+  }, [isLoadingOlder, nextCursor, recentEntries, setErrorMessage]);
 
   return (
     <main className="relative flex min-h-[100vh] min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
@@ -497,10 +521,10 @@ function ThemedContent({
           onClose={() => setOpenPanel(null)}
           isLoading={isLoading}
           isTyping={isTyping}
-          entries={liveEntries}
+          entries={recentEntries}
           olderEntries={olderEntries}
-          hasMoreOlderEntries={hasMoreOlderEntries}
-          isLoadingOlderEntries={isLoadingOlderEntries}
+          hasMoreOlderEntries={Boolean(nextCursor)}
+          isLoadingOlderEntries={isLoadingOlder}
           onLoadOlderEntries={loadOlderEntries}
           newlyAddedIds={newlyAddedIds}
           onStar={(entryId) =>
