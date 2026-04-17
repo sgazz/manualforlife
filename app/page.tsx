@@ -21,6 +21,8 @@ import type {
 
 const MAX_LENGTH = 175;
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+const RECENT_LIVE_LIMIT = 12;
+const OLDER_BATCH_SIZE = 12;
 
 declare global {
   interface Window {
@@ -360,13 +362,18 @@ function ThemedContent({
   const [showHint, setShowHint] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
+  const [olderEntries, setOlderEntries] = useState<Entry[]>([]);
+  const [olderCursor, setOlderCursor] = useState<string | null>(null);
+  const [hasMoreOlderEntries, setHasMoreOlderEntries] = useState(true);
+  const [isLoadingOlderEntries, setIsLoadingOlderEntries] = useState(false);
   const { liveEntries, newlyAddedIds } = useLiveTraces({
     initialEntries: entries,
     paused: isTyping,
-    limit: 20,
+    limit: RECENT_LIVE_LIMIT,
   });
 
   const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
+  const hasStartedThought = text.trim().length > 0;
   const isFocusModeActive = isTyping || (isWritingFocused && text.trim().length > 0);
 
   useEffect(() => {
@@ -392,6 +399,55 @@ function ThemedContent({
       clearTimeout(timer);
     };
   }, [showHint]);
+
+  useEffect(() => {
+    setOlderEntries([]);
+    const oldestRecent = entries[entries.length - 1];
+    setOlderCursor(oldestRecent?.created_at ?? null);
+    setHasMoreOlderEntries(entries.length >= RECENT_LIVE_LIMIT);
+  }, [entries]);
+
+  const loadOlderEntries = useCallback(async () => {
+    if (isLoadingOlderEntries || !hasMoreOlderEntries || !olderCursor) {
+      return;
+    }
+
+    setIsLoadingOlderEntries(true);
+    try {
+      const response = await fetch(
+        `/api/entries?limit=${OLDER_BATCH_SIZE}&before=${encodeURIComponent(olderCursor)}`,
+      );
+      const payload = (await response.json()) as {
+        entries?: Array<Entry & { stars?: number; signature?: string | null }>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Failed to load older traces.");
+      }
+
+      const normalized = (payload.entries ?? []).map((entry) => ({
+        ...entry,
+        stars: typeof entry.stars === "number" ? entry.stars : 0,
+        signature: typeof entry.signature === "string" ? entry.signature : null,
+      }));
+
+      setOlderEntries((previous) => {
+        const merged = [...previous, ...normalized];
+        return merged.filter(
+          (entry, index, array) => array.findIndex((candidate) => candidate.id === entry.id) === index,
+        );
+      });
+      setOlderCursor(payload.nextCursor ?? null);
+      setHasMoreOlderEntries(Boolean(payload.hasMore));
+    } catch {
+      setHasMoreOlderEntries(false);
+    } finally {
+      setIsLoadingOlderEntries(false);
+    }
+  }, [hasMoreOlderEntries, isLoadingOlderEntries, olderCursor]);
 
   return (
     <main className="relative flex min-h-[100vh] min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
@@ -424,14 +480,14 @@ function ThemedContent({
         <LiveTrigger
           isOpen={openPanel === "live"}
           hasUnread={hasUnreadLiveEntries}
-          isFocusModeActive={isFocusModeActive}
+          isHushed={hasStartedThought}
           onToggle={() =>
             setOpenPanel(openPanel === "live" ? null : "live")
           }
         />
         <StarredTrigger
           isOpen={openPanel === "starred"}
-          isFocusModeActive={isFocusModeActive}
+          isHushed={hasStartedThought}
           onToggle={() =>
             setOpenPanel(openPanel === "starred" ? null : "starred")
           }
@@ -442,6 +498,10 @@ function ThemedContent({
           isLoading={isLoading}
           isTyping={isTyping}
           entries={liveEntries}
+          olderEntries={olderEntries}
+          hasMoreOlderEntries={hasMoreOlderEntries}
+          isLoadingOlderEntries={isLoadingOlderEntries}
+          onLoadOlderEntries={loadOlderEntries}
           newlyAddedIds={newlyAddedIds}
           onStar={(entryId) =>
             onStar(entryId, { closePanelOnSuccess: window.innerWidth < 768 })
@@ -460,7 +520,7 @@ function ThemedContent({
         />
         <div
           className={`-mx-1 px-1 transition-opacity duration-300 motion-reduce:transition-none sm:mx-0 sm:px-0 ${
-            isFocusModeActive ? "opacity-70" : "opacity-100"
+            hasStartedThought ? "opacity-86 sm:opacity-88" : "opacity-100"
           }`}
         >
           <Hero />

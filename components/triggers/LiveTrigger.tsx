@@ -3,14 +3,14 @@
 type LiveTriggerProps = {
   isOpen: boolean;
   hasUnread?: boolean;
-  isFocusModeActive?: boolean;
+  isHushed?: boolean;
   onToggle: () => void;
 };
 
 export function LiveTrigger({
   isOpen,
   hasUnread = false,
-  isFocusModeActive = false,
+  isHushed = false,
   onToggle,
 }: LiveTriggerProps) {
   return (
@@ -24,7 +24,7 @@ export function LiveTrigger({
         isOpen
           ? "opacity-100 border-(--theme-accent) bg-(--theme-accent) text-(--theme-accent-contrast)"
           : "opacity-30 border-(--theme-accent-soft) bg-(--theme-surface)/85 text-(--theme-text)"
-      } ${isFocusModeActive && !isOpen ? "opacity-15" : ""}`}
+      } ${isHushed && !isOpen ? "opacity-22" : ""}`}
     >
       <svg
         aria-hidden="true"

@@ -66,6 +66,11 @@ export function InputBox({
     normalizedValue.length === 0 ||
     value.length > maxLength ||
     (requiresTurnstile && !hasTurnstileToken);
+  const thoughtWeight = useMemo(() => {
+    if (normalizedValue.length <= 20) return "quiet";
+    if (normalizedValue.length <= 60) return "neutral";
+    return "ready";
+  }, [normalizedValue.length]);
 
   const lengthFeedback = useMemo(() => {
     if (value.length < 50) {
@@ -357,11 +362,22 @@ export function InputBox({
                   ? "Enter a trace to submit"
                   : "Submit trace"
             }
-            className={`mx-auto inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-opacity duration-300 hover:brightness-105 disabled:cursor-not-allowed disabled:hover:brightness-100 sm:mx-0 ${
-              isInvalid || isSubmitting ? "opacity-45" : "opacity-100"
+            className={`mx-auto inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-[opacity,transform] duration-300 hover:brightness-105 motion-reduce:transition-none disabled:cursor-not-allowed disabled:hover:brightness-100 sm:mx-0 ${
+              isInvalid || isSubmitting
+                ? "opacity-45"
+                : thoughtWeight === "quiet"
+                  ? "opacity-72"
+                  : thoughtWeight === "neutral"
+                    ? "opacity-88"
+                    : "opacity-100"
             }`}
             style={{
-              backgroundColor: "color-mix(in srgb, var(--theme-accent) 84%, #f8ecdb 16%)",
+              backgroundColor:
+                thoughtWeight === "quiet"
+                  ? "color-mix(in srgb, var(--theme-accent) 74%, #f8ecdb 26%)"
+                  : thoughtWeight === "neutral"
+                    ? "color-mix(in srgb, var(--theme-accent) 82%, #f8ecdb 18%)"
+                    : "color-mix(in srgb, var(--theme-accent) 88%, #f8ecdb 12%)",
               color: "color-mix(in srgb, var(--theme-accent-contrast) 90%, #fff5e8 10%)",
               boxShadow: "0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 65%, transparent) inset",
             }}
