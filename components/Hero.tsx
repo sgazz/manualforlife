@@ -2,12 +2,12 @@ import { Title } from "@/components/Title";
 
 export function Hero() {
   return (
-    <section className="space-y-3.5 text-center sm:space-y-5">
+    <section className="space-y-3 text-center sm:space-y-5">
       <div className="mx-auto w-full max-w-xl">
         <svg
           aria-hidden="true"
           viewBox="0 0 420 54"
-          className="mx-auto h-7 w-52 sm:h-11 sm:w-88"
+          className="mx-auto h-6 w-48 sm:h-11 sm:w-88"
         >
           <path
             d="M8 38
@@ -30,11 +30,11 @@ export function Hero() {
         </svg>
         <Title className="mt-0.5 transition-colors duration-400 sm:mt-1" />
       </div>
-      <p className="typography-ui mx-auto max-w-xl px-2 text-(--theme-muted) transition-colors duration-400 sm:max-w-2xl sm:px-0 sm:text-lg">
+      <p className="typography-ui mx-auto max-w-lg px-3 text-(--theme-muted) transition-colors duration-400 sm:max-w-2xl sm:px-0 sm:text-lg">
         This is a place where people leave one thought that changed their life.
         <br className="hidden sm:block" />
         <span className="sm:hidden"> </span>
-        Write yours - for someone you will never meet.
+        Write yours &mdash; for someone you will never meet.
       </p>
     </section>
   );

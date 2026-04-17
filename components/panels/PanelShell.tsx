@@ -108,8 +108,8 @@ export function PanelShell({
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-opacity duration-350 ${
-        isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+      className={`fixed inset-0 transition-opacity duration-350 ${
+        isOpen ? "z-40 pointer-events-auto opacity-100" : "-z-10 pointer-events-none opacity-0"
       }`}
       aria-hidden={!isOpen}
     >

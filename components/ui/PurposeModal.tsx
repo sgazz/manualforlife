@@ -29,8 +29,8 @@ export function PurposeModal({ isOpen, onClose }: PurposeModalProps) {
   return (
     <div
       aria-hidden={!isOpen}
-      className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${
-        isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+      className={`fixed inset-0 transition-opacity duration-300 ease-in-out ${
+        isOpen ? "z-50 pointer-events-auto opacity-100" : "-z-10 pointer-events-none opacity-0"
       }`}
     >
       <button

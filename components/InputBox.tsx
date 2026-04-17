@@ -242,7 +242,7 @@ export function InputBox({
             }}
             maxLength={maxLength}
             className={`typography-ui w-full scroll-mt-24 resize-none rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-[box-shadow,min-height] duration-300 focus:ring-0 motion-reduce:transition-none sm:min-h-40 sm:px-6 sm:py-5 sm:text-lg sm:leading-8 ${
-              isFocused ? "min-h-52" : "min-h-32"
+              isFocused ? "min-h-60 sm:min-h-52" : "min-h-44 sm:min-h-40"
             }`}
             style={{
               borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",

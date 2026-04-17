@@ -465,18 +465,20 @@ function ThemedContent({
         >
           <Hero />
         </div>
-        <InputBox
-          value={text}
-          signature={signature}
-          maxLength={MAX_LENGTH}
-          isSubmitting={isSubmitting}
-          turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
-          hasTurnstileToken={Boolean(turnstileToken)}
-          onChange={setText}
-          onSignatureChange={setSignature}
-          onSubmit={handleSubmit}
-          onFocusChange={setIsWritingFocused}
-        />
+        <div className="pt-2 sm:pt-0">
+          <InputBox
+            value={text}
+            signature={signature}
+            maxLength={MAX_LENGTH}
+            isSubmitting={isSubmitting}
+            turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
+            hasTurnstileToken={Boolean(turnstileToken)}
+            onChange={setText}
+            onSignatureChange={setSignature}
+            onSubmit={handleSubmit}
+            onFocusChange={setIsWritingFocused}
+          />
+        </div>
         {errorMessage ? (
           <p
             className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
