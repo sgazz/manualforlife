@@ -51,7 +51,6 @@ export function LivePanel({
   starredEntryIds,
 }: LivePanelProps) {
   const [hasMounted, setHasMounted] = useState(false);
-  const [showOlderEntries, setShowOlderEntries] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -130,26 +129,19 @@ export function LivePanel({
         )}
         {!isLoading && (olderEntries.length > 0 || hasMoreOlderEntries) ? (
           <section className="mt-2 border-t border-(--theme-border)/20 pt-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => setShowOlderEntries((previous) => !previous)}
-                className="inline-flex min-h-11 items-center text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current"
-              >
-                {showOlderEntries ? "Hide earlier traces" : "Earlier traces"}
-              </button>
-              {showOlderEntries && hasMoreOlderEntries ? (
+            <div className="flex items-center justify-end">
+              {hasMoreOlderEntries ? (
                 <button
                   type="button"
                   disabled={isLoadingOlderEntries}
                   onClick={() => void onLoadOlderEntries()}
-                  className="inline-flex min-h-11 items-center rounded-full px-3 text-xs text-(--theme-muted)/70 transition-colors hover:text-(--theme-muted) disabled:opacity-45"
+                  className="inline-flex min-h-11 items-center text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current disabled:opacity-45"
                 >
-                  {isLoadingOlderEntries ? "Loading..." : "Load more"}
+                  {isLoadingOlderEntries ? "Loading earlier traces..." : "Earlier traces"}
                 </button>
               ) : null}
             </div>
-            {showOlderEntries ? (
+            {olderEntries.length > 0 ? (
               <ul className="mt-3 space-y-5 pb-3 sm:space-y-6">
                 {olderEntries.map((entry) => {
                   const isStarring = Boolean(starringEntryIds[entry.id]);
