@@ -134,12 +134,12 @@ export function RotatingPrompt({
   return (
     <p
       aria-hidden="true"
-      className={`typography-ui px-2 text-(--theme-muted)/70 transition-[opacity,filter] ease-in-out motion-reduce:transition-none ${
-        displayedVisible ? "opacity-100 blur-0" : "opacity-0 blur-[1px]"
+      className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity ease-in-out motion-reduce:transition-none ${
+        displayedVisible ? "opacity-100" : "opacity-0"
       } ${className}`.trim()}
       style={{
         transitionDuration: `${dynamicDuration}ms`,
-        willChange: reducedMotion ? "auto" : "opacity, filter",
+        willChange: reducedMotion ? "auto" : "opacity",
       }}
     >
       {safePrompts[displayedIndex]}

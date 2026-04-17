@@ -155,7 +155,7 @@ export function EntriesList({
                             ? "Saving star..."
                             : "Add star"
                       }
-                      className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-55"
+                      className="inline-flex min-h-11 items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs transition disabled:cursor-not-allowed disabled:opacity-55"
                       style={{
                         borderColor: "var(--theme-border)",
                         backgroundColor: isStarred
@@ -204,7 +204,7 @@ export function EntriesList({
             type="button"
             onClick={() => setShowAll((previous) => !previous)}
             title={showAll ? "Show fewer traces" : "Show more traces"}
-            className="rounded-full border px-4 py-1.5 text-xs tracking-wide transition"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-1.5 text-xs tracking-wide transition"
             style={{
               borderColor: "var(--theme-border)",
               color: "var(--theme-muted)",

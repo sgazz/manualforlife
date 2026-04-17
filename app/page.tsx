@@ -394,7 +394,7 @@ function ThemedContent({
   }, [showHint]);
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center px-4 py-10 sm:px-6 sm:py-14">
+    <main className="relative flex min-h-[100vh] min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
@@ -406,8 +406,8 @@ function ThemedContent({
         }}
       />
       <div
-        className={`pointer-events-none fixed top-5 left-1/2 z-30 -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide backdrop-blur-md transition-all duration-400 ${
-          showHint ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+        className={`bf-toast pointer-events-none fixed left-1/2 z-30 hidden -translate-x-1/2 rounded-full border px-4 py-2 text-xs tracking-wide transition-[opacity,transform] duration-400 top-[max(1.25rem,env(safe-area-inset-top,0px))] sm:block ${
+          showHint ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
         }`}
         style={{
           borderColor: "var(--theme-border)",
@@ -419,7 +419,7 @@ function ThemedContent({
         Shift + scroll or use arrow keys to change mood.
       </div>
       <div
-        className="relative z-10 w-full max-w-3xl space-y-10 rounded-3xl transition-transform duration-400"
+        className="relative z-10 w-full max-w-3xl space-y-6 rounded-3xl transition-[opacity,transform] duration-400 sm:space-y-10"
       >
         <LiveTrigger
           isOpen={openPanel === "live"}
@@ -459,24 +459,26 @@ function ThemedContent({
           starringEntryIds={starringEntryIds}
         />
         <div
-          className={`transition-opacity duration-300 motion-reduce:transition-none ${
+          className={`-mx-1 px-1 transition-opacity duration-300 motion-reduce:transition-none sm:mx-0 sm:px-0 ${
             isFocusModeActive ? "opacity-70" : "opacity-100"
           }`}
         >
           <Hero />
         </div>
-        <InputBox
-          value={text}
-          signature={signature}
-          maxLength={MAX_LENGTH}
-          isSubmitting={isSubmitting}
-          turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
-          hasTurnstileToken={Boolean(turnstileToken)}
-          onChange={setText}
-          onSignatureChange={setSignature}
-          onSubmit={handleSubmit}
-          onFocusChange={setIsWritingFocused}
-        />
+        <div className="pt-2 sm:pt-0">
+          <InputBox
+            value={text}
+            signature={signature}
+            maxLength={MAX_LENGTH}
+            isSubmitting={isSubmitting}
+            turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
+            hasTurnstileToken={Boolean(turnstileToken)}
+            onChange={setText}
+            onSignatureChange={setSignature}
+            onSubmit={handleSubmit}
+            onFocusChange={setIsWritingFocused}
+          />
+        </div>
         {errorMessage ? (
           <p
             className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
@@ -489,18 +491,16 @@ function ThemedContent({
             {errorMessage}
           </p>
         ) : null}
-        <footer className="pt-2 text-center text-sm text-(--theme-muted) transition-colors duration-400">
-          For future generations.
-        </footer>
-        <div className="text-center">
+        <section className="pt-1 text-center text-sm text-(--theme-muted) transition-colors duration-400">
+          <p>For future generations.</p>
           <button
             type="button"
             onClick={() => setIsPurposeOpen(true)}
-            className="text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current hover:text-(--theme-muted)"
+            className="inline-flex min-h-11 items-center text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current hover:text-(--theme-muted)"
           >
             Why this exists
           </button>
-        </div>
+        </section>
       </div>
       <PurposeModal isOpen={isPurposeOpen} onClose={() => setIsPurposeOpen(false)} />
     </main>

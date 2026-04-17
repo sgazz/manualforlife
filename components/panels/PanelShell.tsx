@@ -47,7 +47,20 @@ export function PanelShell({
     const focusable = panelRef.current.querySelector<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
-    focusable?.focus();
+    focusable?.focus({ preventScroll: true });
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isOpen]);
 
   const sideClasses = useMemo(
@@ -95,8 +108,8 @@ export function PanelShell({
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-opacity duration-350 ${
-        isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+      className={`fixed inset-0 transition-opacity duration-350 ${
+        isOpen ? "z-40 pointer-events-auto opacity-100" : "-z-10 pointer-events-none opacity-0"
       }`}
       aria-hidden={!isOpen}
     >
@@ -104,7 +117,7 @@ export function PanelShell({
         type="button"
         aria-label={`Close ${title} panel`}
         title="Close panel"
-        className={`absolute inset-0 bg-[color-mix(in_srgb,var(--theme-text)_16%,transparent)] backdrop-blur-[2px] transition-colors duration-300 ease-in-out ${
+        className={`bf-panel-scrim absolute inset-0 bg-[color-mix(in_srgb,var(--theme-text)_14%,transparent)] transition-colors duration-300 ease-in-out ${
           isOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
         onClick={onClose}
@@ -112,14 +125,14 @@ export function PanelShell({
       <aside
         ref={panelRef}
         role="dialog"
-        aria-modal="false"
+        aria-modal="true"
         aria-labelledby={titleId}
         onKeyDown={handleKeyDown}
-        className={`absolute top-0 h-full w-[min(86vw,360px)] ${sideClasses.position} border-[color-mix(in_srgb,var(--theme-border)_60%,transparent)] bg-[#f8f5f0]/95 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-transform duration-350 ease-in-out motion-reduce:transition-none ${
+        className={`bf-panel-aside absolute inset-y-0 flex w-[min(82vw,340px)] flex-col overflow-hidden sm:w-[min(86vw,360px)] ${sideClasses.position} border-[color-mix(in_srgb,var(--theme-border)_60%,transparent)] bg-[#f8f5f0]/96 px-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-transform duration-350 ease-in-out motion-reduce:transition-none ${
           isOpen ? "translate-x-0" : sideClasses.hidden
         } ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
       >
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-2.5 flex items-center justify-between sm:mb-3">
           <h3
             id={titleId}
             className="text-xs tracking-[0.18em] uppercase text-(--theme-muted)"
@@ -130,7 +143,7 @@ export function PanelShell({
             type="button"
             onClick={onClose}
             title="Close panel"
-            className="rounded-full px-2 py-0.5 text-xs text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-base leading-none text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)"
           >
             ×
           </button>

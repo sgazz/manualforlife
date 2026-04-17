@@ -54,6 +54,7 @@ export function InputBox({
   const previousLengthRef = useRef(value.length);
   const currentLengthRef = useRef(value.length);
   const counterTimeoutRef = useRef<number | null>(null);
+  const savedFeedbackTimeoutRef = useRef<number | null>(null);
   const [isCounterVisible, setIsCounterVisible] = useState(false);
 
   const requiresTurnstile = Boolean(turnstileSiteKey);
@@ -90,7 +91,7 @@ export function InputBox({
       return;
     }
 
-    signatureInputRef.current.focus();
+    signatureInputRef.current.focus({ preventScroll: true });
     signatureInputRef.current.setSelectionRange(
       signatureInputRef.current.value.length,
       signatureInputRef.current.value.length,
@@ -169,6 +170,9 @@ export function InputBox({
       if (counterTimeoutRef.current !== null) {
         window.clearTimeout(counterTimeoutRef.current);
       }
+      if (savedFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(savedFeedbackTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -182,7 +186,10 @@ export function InputBox({
     const wasSuccessful = await onSubmit(form);
     if (wasSuccessful) {
       setShowSavedFeedback(true);
-      window.setTimeout(() => {
+      if (savedFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(savedFeedbackTimeoutRef.current);
+      }
+      savedFeedbackTimeoutRef.current = window.setTimeout(() => {
         onChange("");
         onSignatureChange("");
         setShowSavedFeedback(false);
@@ -203,7 +210,7 @@ export function InputBox({
       />
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full space-y-5 rounded-2xl bg-(--theme-surface) p-6 transition-all duration-400 motion-reduce:transition-none sm:p-7"
+        className="relative z-10 w-full space-y-4 rounded-2xl bg-(--theme-surface) px-4 py-4 transition-shadow duration-400 motion-reduce:transition-none sm:space-y-5 sm:px-6 sm:py-5"
         style={{
           boxShadow: isFocused ? "0 12px 32px rgba(0, 0, 0, 0.07)" : "var(--theme-shadow-soft)",
         }}
@@ -219,7 +226,7 @@ export function InputBox({
           className="hidden"
           aria-hidden="true"
         />
-        <div className="relative space-y-2">
+        <div className="relative space-y-1.5 sm:space-y-2">
           <RotatingPrompt prompts={PROMPTS} paused={isFocused || hasText} />
           <textarea
             id="entry-text"
@@ -234,7 +241,9 @@ export function InputBox({
               onFocusChange?.(false);
             }}
             maxLength={maxLength}
-            className="typography-ui min-h-40 w-full resize-none rounded-xl border-b px-6 py-5 text-lg leading-8 text-(--theme-text) outline-none transition duration-300 focus:ring-0 motion-reduce:transition-none"
+            className={`typography-ui w-full scroll-mt-24 resize-none rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-[box-shadow,min-height] duration-300 focus:ring-0 motion-reduce:transition-none sm:min-h-40 sm:px-6 sm:py-5 sm:text-lg sm:leading-8 ${
+              isFocused ? "min-h-60 sm:min-h-52" : "min-h-44 sm:min-h-40"
+            }`}
             style={{
               borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",
               backgroundColor: "color-mix(in srgb, var(--theme-surface) 96%, white 4%)",
@@ -250,17 +259,18 @@ export function InputBox({
         </p>
 
         <div
-          className={`overflow-hidden transition-all duration-300 motion-reduce:transition-none ${
-            canRevealSignature ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none ${
+            canRevealSignature ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
           }`}
         >
-          {!showSignatureInput || !canRevealSignature ? (
+          <div className="min-h-0">
+            {!showSignatureInput || !canRevealSignature ? (
             <button
               type="button"
               disabled={!canRevealSignature}
               onClick={() => setShowSignatureInput(true)}
               title="Add signature"
-              className="text-xs text-(--theme-muted)/80 underline decoration-transparent transition hover:decoration-current disabled:cursor-default disabled:no-underline"
+              className="inline-flex min-h-11 items-center text-xs text-(--theme-muted)/80 underline decoration-transparent transition-colors hover:decoration-current disabled:cursor-default disabled:no-underline"
             >
               Would you like to sign it?
             </button>
@@ -278,7 +288,7 @@ export function InputBox({
                 onBlur={() => setIsSignatureFocused(false)}
                 maxLength={SIGNATURE_MAX_LENGTH}
                 placeholder="Your name (optional)"
-                className="typography-ui w-full rounded-lg border px-3 py-2 text-sm text-(--theme-text) outline-none transition placeholder:text-(--theme-muted)/70 focus:ring-2 focus:ring-(--theme-accent-soft)"
+                className="w-full scroll-mt-24 rounded-lg border px-3 py-2 font-sans text-base leading-normal tracking-[0.01em] text-(--theme-text) outline-none transition-shadow placeholder:text-(--theme-muted)/70 focus:ring-2 focus:ring-(--theme-accent-soft)"
                 style={{
                   borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
                   backgroundColor: "color-mix(in srgb, var(--theme-surface) 94%, white 6%)",
@@ -287,7 +297,8 @@ export function InputBox({
               />
               <CustomCaret visible={isSignatureFocused} />
             </div>
-          )}
+            )}
+          </div>
         </div>
 
         {value.trim().length > 0 ? (
@@ -326,7 +337,7 @@ export function InputBox({
         <div className="flex items-center justify-between gap-4">
           <span
             title={`${Math.max(0, maxLength - value.length)} characters remaining (${value.length}/${maxLength})`}
-            className={`text-sm transition-all duration-300 ${
+            className={`text-sm transition-opacity duration-300 ${
               isCounterVisible ? "opacity-100" : "opacity-0"
             }`}
             style={{
@@ -346,7 +357,7 @@ export function InputBox({
                   ? "Enter a trace to submit"
                   : "Submit trace"
             }
-            className={`rounded-full px-5 py-2 text-sm font-medium transition duration-300 hover:brightness-105 disabled:cursor-not-allowed disabled:hover:brightness-100 ${
+            className={`inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-opacity duration-300 hover:brightness-105 disabled:cursor-not-allowed disabled:hover:brightness-100 ${
               isInvalid || isSubmitting ? "opacity-45" : "opacity-100"
             }`}
             style={{
