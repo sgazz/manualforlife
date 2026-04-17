@@ -2,13 +2,13 @@
 
 type StarredTriggerProps = {
   isOpen: boolean;
-  isFocusModeActive?: boolean;
+  isHushed?: boolean;
   onToggle: () => void;
 };
 
 export function StarredTrigger({
   isOpen,
-  isFocusModeActive = false,
+  isHushed = false,
   onToggle,
 }: StarredTriggerProps) {
   return (
@@ -22,7 +22,7 @@ export function StarredTrigger({
         isOpen
           ? "opacity-100 border-(--theme-accent) bg-(--theme-accent) text-(--theme-accent-contrast)"
           : "opacity-30 border-(--theme-accent-soft) bg-(--theme-surface)/85 text-(--theme-text)"
-      } ${isFocusModeActive && !isOpen ? "opacity-15" : ""}`}
+      } ${isHushed && !isOpen ? "opacity-22" : ""}`}
     >
       ★
     </button>

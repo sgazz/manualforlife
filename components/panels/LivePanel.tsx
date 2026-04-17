@@ -10,6 +10,10 @@ type LivePanelProps = {
   isLoading: boolean;
   isTyping?: boolean;
   entries: Entry[];
+  olderEntries: Entry[];
+  hasMoreOlderEntries: boolean;
+  isLoadingOlderEntries: boolean;
+  onLoadOlderEntries: () => Promise<void>;
   newlyAddedIds: string[];
   onStar: (entryId: string) => Promise<void>;
   starringEntryIds: LoadingEntryMap;
@@ -37,12 +41,17 @@ export function LivePanel({
   isLoading,
   isTyping = false,
   entries,
+  olderEntries,
+  hasMoreOlderEntries,
+  isLoadingOlderEntries,
+  onLoadOlderEntries,
   newlyAddedIds,
   onStar,
   starringEntryIds,
   starredEntryIds,
 }: LivePanelProps) {
   const [hasMounted, setHasMounted] = useState(false);
+  const [showOlderEntries, setShowOlderEntries] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -119,6 +128,81 @@ export function LivePanel({
             })}
           </ul>
         )}
+        {!isLoading && (olderEntries.length > 0 || hasMoreOlderEntries) ? (
+          <section className="mt-2 border-t border-(--theme-border)/20 pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setShowOlderEntries((previous) => !previous)}
+                className="inline-flex min-h-11 items-center text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current"
+              >
+                {showOlderEntries ? "Hide earlier traces" : "Earlier traces"}
+              </button>
+              {showOlderEntries && hasMoreOlderEntries ? (
+                <button
+                  type="button"
+                  disabled={isLoadingOlderEntries}
+                  onClick={() => void onLoadOlderEntries()}
+                  className="inline-flex min-h-11 items-center rounded-full px-3 text-xs text-(--theme-muted)/70 transition-colors hover:text-(--theme-muted) disabled:opacity-45"
+                >
+                  {isLoadingOlderEntries ? "Loading..." : "Load more"}
+                </button>
+              ) : null}
+            </div>
+            {showOlderEntries ? (
+              <ul className="mt-3 space-y-5 pb-3 sm:space-y-6">
+                {olderEntries.map((entry) => {
+                  const isStarring = Boolean(starringEntryIds[entry.id]);
+                  const isStarred = starredEntryIds.includes(entry.id);
+                  return (
+                    <li
+                      key={entry.id}
+                      className="border-b border-(--theme-border)/18 pb-4 transition-opacity duration-300 ease-in-out sm:pb-5"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/60">
+                        <span
+                          suppressHydrationWarning
+                          className="inline-flex items-center gap-2"
+                          title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}
+                        >
+                          <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/40" />
+                          <span className="whitespace-nowrap">
+                            {formatRelativeTime(entry.created_at, hasMounted)}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          disabled={isStarring}
+                          onClick={() => void onStar(entry.id)}
+                          title={
+                            isStarred
+                              ? "Remove star"
+                              : isStarring
+                                ? "Saving star..."
+                                : "Add star"
+                          }
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 active:scale-95 disabled:opacity-45"
+                        >
+                          <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
+                          <span className="tabular-nums">{entry.stars}</span>
+                        </button>
+                      </div>
+                      <p className="font-serif text-[1.03rem] leading-7 text-(--theme-text) sm:text-lg sm:leading-8">
+                        {entry.text}
+                      </p>
+                      {entry.signature ? (
+                        <p className="mt-2.5 text-xs italic text-(--theme-muted)/70">
+                          &mdash; {entry.signature}
+                        </p>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </section>
+        ) : null}
+        <div aria-hidden="true" className="h-6 sm:h-8" />
         <div className="pointer-events-none sticky bottom-0 z-10 h-6 bg-linear-to-t from-[#f8f5f0] to-transparent sm:h-8" />
       </div>
     </PanelShell>

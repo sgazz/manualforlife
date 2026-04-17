@@ -85,6 +85,7 @@ export function StarredPanel({
             ))}
           </ul>
         )}
+        <div aria-hidden="true" className="h-6 sm:h-8" />
         <div className="pointer-events-none sticky bottom-0 z-10 h-8 bg-linear-to-t from-[#f8f5f0] to-transparent" />
       </div>
     </PanelShell>
