@@ -334,10 +334,10 @@ export function InputBox({
             />
           </>
         ) : null}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <span
             title={`${Math.max(0, maxLength - value.length)} characters remaining (${value.length}/${maxLength})`}
-            className={`text-sm transition-opacity duration-300 ${
+            className={`text-center text-sm transition-opacity duration-300 sm:text-left ${
               isCounterVisible ? "opacity-100" : "opacity-0"
             }`}
             style={{
@@ -357,7 +357,7 @@ export function InputBox({
                   ? "Enter a trace to submit"
                   : "Submit trace"
             }
-            className={`inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-opacity duration-300 hover:brightness-105 disabled:cursor-not-allowed disabled:hover:brightness-100 ${
+            className={`mx-auto inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-opacity duration-300 hover:brightness-105 disabled:cursor-not-allowed disabled:hover:brightness-100 sm:mx-0 ${
               isInvalid || isSubmitting ? "opacity-45" : "opacity-100"
             }`}
             style={{
