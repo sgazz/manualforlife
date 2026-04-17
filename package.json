@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build:favicons": "python3 scripts/build-favicons.py",
+    "build:og": "python3 scripts/build-og-image.py",
     "start": "next start",
     "lint": "eslint"
   },

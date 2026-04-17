@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manualfor.life — One thought worth keeping</title>
+  <meta name="description" content="A place where people leave one thought that changed their life." />
+  <link rel="canonical" href="https://manualfor.life/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://manualfor.life/" />
+  <meta property="og:title" content="Manualfor.life — One thought worth keeping" />
+  <meta property="og:description" content="A place where people leave one thought that changed their life." />
+  <meta property="og:image" content="https://manualfor.life/og/og-ecosystem.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Manualfor.life" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Manualfor.life — One thought worth keeping" />
+  <meta name="twitter:description" content="A place where people leave one thought that changed their life." />
+  <meta name="twitter:image" content="https://manualfor.life/og/og-ecosystem.png" />
+  <meta name="theme-color" content="#f8f5f0" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Caveat:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f5f0;
+      --bg-soft: #f2ede4;
+      --surface: rgba(255, 255, 255, 0.52);
+      --text: #1f1a17;
+      --muted: #6f675f;
+      --line: rgba(50, 38, 28, 0.12);
+      --accent: #b89a6a;
+      --accent-dark: #9d8054;
+      --shadow: 0 20px 50px rgba(36, 28, 21, 0.08);
+      --radius: 28px;
+      --container: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.72), transparent 42%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(40, 30, 20, 0.025) 0.7px, transparent 0.7px);
+      background-size: 14px 14px;
+      opacity: 0.55;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.12));
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--container));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(248, 245, 240, 0.64);
+      border-bottom: 1px solid rgba(50, 38, 28, 0.06);
+    }
+
+    .site-header__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 72px;
+    }
+
+    .brand {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+      letter-spacing: 0.01em;
+      line-height: 1;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.04em;
+    }
+
+    .brand .life {
+      font-family: "Caveat", cursive;
+      font-size: 1.08em;
+      color: color-mix(in srgb, var(--text) 84%, var(--muted) 16%);
+      transform: translateY(0.05em);
+    }
+
+    .header-link {
+      color: var(--muted);
+      font-size: 0.95rem;
+      transition: color 220ms ease;
+    }
+
+    .header-link:hover { color: var(--text); }
+
+    .hero {
+      padding: clamp(4.5rem, 9vw, 7.5rem) 0 clamp(3rem, 6vw, 4.5rem);
+      text-align: center;
+    }
+
+    .hero__inner {
+      display: grid;
+      gap: 1.5rem;
+      justify-items: center;
+    }
+
+    .line-mark {
+      width: min(100%, 360px);
+      height: auto;
+      opacity: 0.84;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(3rem, 9vw, 5.7rem);
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: 0.015em;
+      text-wrap: balance;
+    }
+
+    .hero-title .life {
+      display: inline-block;
+      margin-left: 0.02em;
+      font-family: "Caveat", cursive;
+      font-size: 0.96em;
+      color: color-mix(in srgb, var(--text) 84%, var(--muted) 16%);
+      transform: translateY(0.04em);
+    }
+
+    .hero-subtitle {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.1vw, 1.2rem);
+      line-height: 1.75;
+      text-wrap: balance;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.9rem;
+      margin-top: 0.8rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0.9rem 1.5rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-weight: 500;
+      font-size: 0.98rem;
+      transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease, color 220ms ease, border-color 220ms ease;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button--primary {
+      background: color-mix(in srgb, var(--accent) 88%, #f8ecdb 12%);
+      color: #fff8ef;
+      box-shadow: 0 12px 28px rgba(184, 154, 106, 0.22);
+    }
+
+    .button--primary:hover {
+      background: color-mix(in srgb, var(--accent-dark) 88%, #f8ecdb 12%);
+    }
+
+    .button--ghost {
+      border-color: var(--line);
+      color: var(--muted);
+      background: rgba(255,255,255,0.36);
+    }
+
+    .button--ghost:hover {
+      color: var(--text);
+      border-color: rgba(50, 38, 28, 0.18);
+    }
+
+    .section {
+      padding: clamp(2.5rem, 5vw, 4.5rem) 0;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid rgba(50, 38, 28, 0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+    }
+
+    .section-label {
+      margin: 0 0 0.5rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2rem, 5vw, 3.15rem);
+      line-height: 1.05;
+      font-weight: 500;
+      text-wrap: balance;
+    }
+
+    .section-copy {
+      max-width: 760px;
+      margin: 1rem auto 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.82;
+      text-wrap: pretty;
+    }
+
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .trace-card {
+      background: rgba(255,255,255,0.46);
+      border: 1px solid rgba(50, 38, 28, 0.08);
+      border-radius: 22px;
+      padding: 1.35rem 1.2rem;
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 10px 24px rgba(20, 15, 10, 0.05);
+    }
+
+    .trace-card blockquote {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+      line-height: 1.5;
+      color: color-mix(in srgb, var(--text) 94%, var(--muted) 6%);
+    }
+
+    .idea-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.75rem;
+    }
+
+    .idea-card {
+      padding: 1.35rem 1.2rem;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.34);
+      border: 1px solid rgba(50, 38, 28, 0.07);
+    }
+
+    .idea-card__icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(184, 154, 106, 0.14);
+      color: var(--accent-dark);
+      font-size: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .idea-card h3 {
+      margin: 0 0 0.45rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .idea-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.7;
+    }
+
+    .cta-block {
+      text-align: center;
+      padding-top: clamp(2rem, 5vw, 3rem);
+      padding-bottom: clamp(3.5rem, 7vw, 5rem);
+    }
+
+    .cta-block .section-copy {
+      margin-top: 0.8rem;
+      max-width: 640px;
+    }
+
+    .site-footer {
+      border-top: 1px solid rgba(50, 38, 28, 0.08);
+      padding: 1.3rem 0 2rem;
+    }
+
+    .site-footer__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .footer-brand {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.25rem;
+      color: var(--text);
+    }
+
+    @media (max-width: 920px) {
+      .examples,
+      .idea-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trace-card {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .site-header__inner {
+        min-height: 64px;
+      }
+
+      .header-link {
+        font-size: 0.9rem;
+      }
+
+      .hero {
+        padding-top: 4rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .hero-actions .button {
+        width: min(100%, 280px);
+      }
+
+      .section-card {
+        border-radius: 24px;
+      }
+
+      .site-footer__inner {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a href="#top" class="brand" aria-label="Manualfor.life home">
+        <span>Manualfor</span><span class="life">.life</span>
+      </a>
+      <a href="https://app.manualfor.life" class="header-link">Leave a trace</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero__inner">
+        <svg aria-hidden="true" viewBox="0 0 420 54" class="line-mark">
+          <path
+            d="M8 38
+               C 46 42, 82 16, 130 6
+               C 162 -2, 188 22, 170 34
+               C 158 42, 168 46, 188 40
+               C 208 34, 220 22, 240 22
+               C 264 22, 268 42, 250 44
+               C 236 46, 232 52, 258 50
+               C 292 48, 324 34, 356 30
+               C 376 28, 394 28, 412 30
+               C 408 30, 410 30, 412 30"
+            fill="none"
+            stroke="rgba(111, 103, 95, 0.88)"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <h1 class="hero-title">
+          <span>Manualfor</span><span class="life">.life</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          A place where people leave one thought that changed their life.
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a trace</a>
+          <a href="https://app.manualfor.life" class="button button--ghost">Read traces</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-card" style="text-align:center;">
+          <p class="section-label">Why it exists</p>
+          <h2 class="section-title">Most lessons disappear.</h2>
+          <p class="section-copy">
+            We learn through time, loss, patience, mistakes, kindness, and change.
+            Then many of those lessons vanish with us.
+            <br><br>
+            Manualfor.life exists so one sentence can remain.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="examples">
+      <div class="container">
+        <p class="section-label" style="text-align:center;">A few traces</p>
+        <h2 class="section-title" style="text-align:center;">A sentence can stay with you.</h2>
+        <div class="examples">
+          <article class="trace-card">
+            <blockquote>Rest before you break.</blockquote>
+          </article>
+          <article class="trace-card">
+            <blockquote>You don’t need permission to begin.</blockquote>
+          </article>
+          <article class="trace-card">
+            <blockquote>What you repeat becomes you.</blockquote>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="text-align:center;">The idea</p>
+        <h2 class="section-title" style="text-align:center;">A quiet archive for what matters.</h2>
+        <div class="idea-grid">
+          <article class="idea-card">
+            <div class="idea-card__icon">✦</div>
+            <h3>Wisdom belongs to everyone</h3>
+            <p>Not to experts only, but to anyone who has lived, learned, and understood something worth passing on.</p>
+          </article>
+          <article class="idea-card">
+            <div class="idea-card__icon">✦</div>
+            <h3>One sentence can change a life</h3>
+            <p>Sometimes the right words arrive at the right time and stay longer than anything else.</p>
+          </article>
+          <article class="idea-card">
+            <div class="idea-card__icon">✦</div>
+            <h3>Leave something for someone unseen</h3>
+            <p>Write for a stranger you will never meet, and for a future that has not arrived yet.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta-block" id="leave">
+      <div class="container">
+        <p class="section-label">Leave your trace</p>
+        <h2 class="section-title">What would you leave behind?</h2>
+        <p class="section-copy">
+          One thought. One lesson. One truth worth keeping.
+        </p>
+        <div class="hero-actions" style="margin-top: 1.4rem;">
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a trace</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="footer-brand">Manualfor.life</div>
+      <div>For future generations.</div>
+    </div>
+  </footer>
+</body>
+</html>
