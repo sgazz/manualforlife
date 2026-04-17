@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-import { TraceTransition } from "@/components/TraceTransition";
 import type { Entry, LoadingEntryMap } from "@/types/ui";
 
 type LivePanelProps = {
@@ -57,17 +56,17 @@ export function LivePanel({
   return (
     <PanelShell side="left" isOpen={isOpen} onClose={onClose} title="Live Traces">
       <div
-        className={`relative h-[calc(100vh-5rem)] overflow-y-auto pr-1 transition-opacity duration-300 ease-in-out ${
+        className={`ios-scroll-touch relative min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0 transition-opacity duration-300 ease-in-out sm:pr-1 ${
           isTyping ? "opacity-65" : "opacity-100"
         }`}
       >
-        <div className="pointer-events-none sticky top-0 z-10 h-6 bg-linear-to-b from-[#f8f5f0] to-transparent" />
+        <div className="pointer-events-none sticky top-0 z-10 h-4 bg-linear-to-b from-[#f8f5f0] to-transparent sm:h-6" />
         {isLoading ? (
           <p className="px-2 py-4 text-sm text-(--theme-muted)">
             Loading traces...
           </p>
         ) : (
-          <ul className="space-y-6 pb-6">
+          <ul className="space-y-5 pb-5 sm:space-y-6 sm:pb-6">
             {entries.map((entry) => {
               const isNew = newlyAddedIds.includes(entry.id);
               const isStarring = Boolean(starringEntryIds[entry.id]);
@@ -75,21 +74,18 @@ export function LivePanel({
               return (
                 <li
                   key={entry.id}
-                  className={`border-b border-(--theme-border)/35 pb-5 transition-all duration-300 ease-in-out ${
+                  className={`border-b border-(--theme-border)/25 pb-4 transition-opacity duration-300 ease-in-out sm:pb-5 ${
                     isNew ? "motion-safe:animate-[liveEntryIn_320ms_ease-in-out]" : ""
                   }`}
                 >
-                  <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/70">
+                  <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/65">
                     <span
                       suppressHydrationWarning
-                      className="group/date inline-flex items-center gap-2"
+                      className="inline-flex items-center gap-2"
                       title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}
                     >
-                      <span
-                        aria-hidden="true"
-                        className="h-1.5 w-1.5 rounded-full bg-(--theme-muted)/45 transition-colors duration-300 ease-in-out group-hover/date:bg-(--theme-muted)/65"
-                      />
-                      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-in-out group-hover/date:max-w-28 group-hover/date:opacity-100 group-focus-within/date:max-w-28 group-focus-within/date:opacity-100">
+                      <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/45" />
+                      <span className="whitespace-nowrap">
                         {formatRelativeTime(entry.created_at, hasMounted)}
                       </span>
                     </span>
@@ -104,18 +100,17 @@ export function LivePanel({
                             ? "Saving star..."
                             : "Add star"
                       }
-                      className="inline-flex items-center gap-1 text-xs text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted) disabled:opacity-45"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 active:scale-95 disabled:opacity-45"
                     >
                       <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
-                      <span>{entry.stars}</span>
+                      <span className="tabular-nums">{entry.stars}</span>
                     </button>
                   </div>
-                  <TraceTransition
-                    text={entry.text}
-                    className="block font-serif text-lg leading-8 text-(--theme-text)"
-                  />
+                  <p className="font-serif text-[1.03rem] leading-7 text-(--theme-text) sm:text-lg sm:leading-8">
+                    {entry.text}
+                  </p>
                   {entry.signature ? (
-                    <p className="mt-3 text-xs italic text-(--theme-muted)/70">
+                    <p className="mt-2.5 text-xs italic text-(--theme-muted)/70">
                       &mdash; {entry.signature}
                     </p>
                   ) : null}
@@ -124,7 +119,7 @@ export function LivePanel({
             })}
           </ul>
         )}
-        <div className="pointer-events-none sticky bottom-0 z-10 h-8 bg-linear-to-t from-[#f8f5f0] to-transparent" />
+        <div className="pointer-events-none sticky bottom-0 z-10 h-6 bg-linear-to-t from-[#f8f5f0] to-transparent sm:h-8" />
       </div>
     </PanelShell>
   );

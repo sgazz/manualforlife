@@ -15,7 +15,9 @@
   --theme-error-bg: rgba(254, 242, 242, 0.88);
   --theme-error-border: rgba(252, 165, 165, 0.8);
   --theme-error-text: #b91c1c;
+  min-height: 100vh;
   min-height: 100svh;
+  min-height: 100dvh;
   background: var(--theme-bg);
   color: var(--theme-text);
   transition:

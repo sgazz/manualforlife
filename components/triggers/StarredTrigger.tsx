@@ -18,7 +18,7 @@ export function StarredTrigger({
       aria-label="Toggle starred traces panel"
       aria-expanded={isOpen}
       onClick={onToggle}
-      className={`fixed top-1/2 right-5 z-30 flex h-14 w-8 -translate-y-1/2 items-center justify-center rounded-[999px] border text-sm shadow-(--theme-shadow-soft) backdrop-blur-sm transition duration-300 hover:opacity-60 ${
+      className={`bf-trigger fixed top-1/2 z-30 flex h-11 min-h-11 w-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[999px] border text-sm shadow-(--theme-shadow-soft) transition-[opacity,transform] duration-300 hover:opacity-60 right-[max(1.25rem,env(safe-area-inset-right,0px))] ${
         isOpen
           ? "opacity-100 border-(--theme-accent) bg-(--theme-accent) text-(--theme-accent-contrast)"
           : "opacity-30 border-(--theme-accent-soft) bg-(--theme-surface)/85 text-(--theme-text)"
