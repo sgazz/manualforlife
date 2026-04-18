@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-import type { Entry, LoadingEntryMap } from "@/types/ui";
+import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
 type StarredPanelProps = {
   isOpen: boolean;
   onClose: () => void;
   entries: Entry[];
-  onStar: (entryId: string) => Promise<void>;
+  onStar: (entryId: string, options?: StarActionOptions) => Promise<void>;
   starringEntryIds: LoadingEntryMap;
 };
 

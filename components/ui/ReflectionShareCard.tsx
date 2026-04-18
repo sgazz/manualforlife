@@ -11,10 +11,10 @@ type ReflectionShareCardProps = {
   onClose: () => void;
 };
 
-type ShareFeedback = "idle" | "copied";
+type ShareFeedback = "idle" | "copied" | "copy_failed";
 
-async function copyTraceForSharing(trace: string) {
-  const clip = `${trace}\n\nmanualfor.life`;
+async function copyTraceForSharing(trimmedTrace: string) {
+  const clip = `${trimmedTrace}\n\nmanualfor.life`;
   await navigator.clipboard.writeText(clip);
 }
 
@@ -29,6 +29,7 @@ export function ReflectionShareCard({
   const [shareFeedback, setShareFeedback] = useState<ShareFeedback>("idle");
   const feedbackClearRef = useRef<number | null>(null);
 
+  const trimmedTraceText = traceText.trim();
   const trimmedSignature = signature.trim();
   const hasSignature = trimmedSignature.length > 0;
 
@@ -84,8 +85,7 @@ export function ReflectionShareCard({
   }, [onClose]);
 
   const handleShare = async () => {
-    const text = traceText.trim();
-    if (!text) {
+    if (!trimmedTraceText) {
       return;
     }
 
@@ -93,7 +93,7 @@ export function ReflectionShareCard({
       try {
         await navigator.share({
           title: SHARE_TITLE,
-          text,
+          text: trimmedTraceText,
           url: SHARE_URL,
         });
         return;
@@ -105,11 +105,11 @@ export function ReflectionShareCard({
     }
 
     try {
-      await copyTraceForSharing(text);
+      await copyTraceForSharing(trimmedTraceText);
       setShareFeedback("copied");
       clearFeedbackLater();
     } catch {
-      setShareFeedback("copied");
+      setShareFeedback("copy_failed");
       clearFeedbackLater();
     }
   };
@@ -151,7 +151,7 @@ export function ReflectionShareCard({
 
             <blockquote className="mt-6 border-none px-0 py-0 shadow-none">
               <p className="font-serif text-[1.125rem] leading-[1.65] text-(--theme-text)/92 sm:text-[1.2rem] sm:leading-[1.7]">
-                &ldquo;{traceText}&rdquo;
+                &ldquo;{trimmedTraceText}&rdquo;
               </p>
               {hasSignature ? (
                 <footer className="typography-signature mt-4 text-sm text-(--theme-muted)/85">
@@ -180,13 +180,7 @@ export function ReflectionShareCard({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 py-2.5 text-sm text-(--theme-muted) underline decoration-transparent transition-colors hover:decoration-current hover:text-(--theme-text)/80"
-                style={{
-                  borderColor:
-                    "color-mix(in srgb, var(--theme-border) 40%, transparent)",
-                  boxShadow:
-                    "0 0 0 1px color-mix(in srgb, var(--theme-border) 35%, transparent) inset",
-                }}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-4 py-2 text-xs font-normal tracking-wide text-(--theme-muted)/50 transition-colors duration-200 hover:text-(--theme-muted)/72 motion-reduce:transition-none"
               >
                 Write another
               </button>
@@ -194,11 +188,15 @@ export function ReflectionShareCard({
 
             <p
               aria-live="polite"
-              className={`mt-4 min-h-5 text-center text-xs text-(--theme-muted)/80 transition-opacity duration-300 motion-reduce:transition-none ${
-                shareFeedback === "copied" ? "opacity-100" : "opacity-0"
+              className={`mt-4 min-h-5 text-center text-xs text-(--theme-muted)/70 transition-opacity duration-300 motion-reduce:transition-none ${
+                shareFeedback === "idle" ? "opacity-0" : "opacity-100"
               }`}
             >
-              {shareFeedback === "copied" ? "Copied to share." : "\u00a0"}
+              {shareFeedback === "copied"
+                ? "Copied to share."
+                : shareFeedback === "copy_failed"
+                  ? "Couldn't copy automatically — select the quote above if you need it."
+                  : "\u00a0"}
             </p>
           </div>
         </div>

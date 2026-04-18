@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
-import type { Entry, LoadingEntryMap } from "@/types/ui";
+import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
 type LivePanelProps = {
   isOpen: boolean;
@@ -15,7 +15,7 @@ type LivePanelProps = {
   isLoadingOlderEntries: boolean;
   onLoadOlderEntries: () => Promise<void>;
   newlyAddedIds: string[];
-  onStar: (entryId: string) => Promise<void>;
+  onStar: (entryId: string, options?: StarActionOptions) => Promise<void>;
   starringEntryIds: LoadingEntryMap;
   starredEntryIds: string[];
 };
@@ -100,7 +100,7 @@ export function LivePanel({
                     <button
                       type="button"
                       disabled={isStarring}
-                      onClick={() => void onStar(entry.id)}
+                      onClick={() => void onStar(entry.id, { sourceEntry: entry })}
                       title={
                         isStarred
                           ? "Remove star"
@@ -165,7 +165,7 @@ export function LivePanel({
                         <button
                           type="button"
                           disabled={isStarring}
-                          onClick={() => void onStar(entry.id)}
+                          onClick={() => void onStar(entry.id, { sourceEntry: entry })}
                           title={
                             isStarred
                               ? "Remove star"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
@@ -12,6 +12,14 @@ import { LiveTrigger } from "@/components/triggers/LiveTrigger";
 import { StarredTrigger } from "@/components/triggers/StarredTrigger";
 import { useLiveTraces } from "@/hooks/useLiveTraces";
 import { useTypingState } from "@/hooks/useTypingState";
+import {
+  buildSavedTraceFromEntry,
+  getSavedTraces,
+  savedTraceToEntry,
+  sortSavedTracesBySavedAt,
+  writeStoredSavedTraces,
+  type SavedTrace,
+} from "@/lib/savedTraces";
 import type {
   Entry,
   LoadingEntryMap,
@@ -24,6 +32,8 @@ const MAX_LENGTH = 175;
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const RECENT_LIVE_LIMIT = 12;
 const OLDER_BATCH_SIZE = 12;
+/** Matches prior `window.innerWidth < 768` check for panel auto-close. */
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
 type EntriesCursor = {
   beforeCreatedAt: string;
   beforeId: string;
@@ -47,8 +57,8 @@ export default function Home() {
   const [starringEntryIds, setStarringEntryIds] = useState<LoadingEntryMap>(
     {},
   );
-  const [starredEntryIds, setStarredEntryIds] = useState<string[]>([]);
-  const [starredEntries, setStarredEntries] = useState<Entry[]>([]);
+  const [savedTraces, setSavedTraces] = useState<SavedTrace[]>([]);
+  const unstarRollbackByIdRef = useRef<Map<string, SavedTrace>>(new Map());
   const [visitorId, setVisitorId] = useState<string | null>(null);
   const [initialNextCursor, setInitialNextCursor] = useState<EntriesCursor | null>(null);
   const [reflectionOpen, setReflectionOpen] = useState(false);
@@ -62,38 +72,6 @@ export default function Home() {
       document.getElementById("entry-text")?.focus({ preventScroll: true });
     });
   }, []);
-
-  const fetchStarredEntries = useCallback(async () => {
-    if (!visitorId) {
-      setStarredEntries([]);
-      setStarredEntryIds([]);
-      return;
-    }
-
-    const response = await fetch("/api/entries/starred", {
-      method: "GET",
-      headers: {
-        "x-visitor-id": visitorId,
-      },
-    });
-    const payload = (await response.json()) as {
-      entries?: Array<Entry & { stars?: number; signature?: string | null }>;
-      error?: string;
-    };
-
-    if (!response.ok) {
-      setErrorMessage(payload.error ?? "Failed to load starred entries.");
-      return;
-    }
-
-    const normalizedEntries = (payload.entries ?? []).map((entry) => ({
-      ...entry,
-      stars: typeof entry.stars === "number" ? entry.stars : 0,
-      signature: typeof entry.signature === "string" ? entry.signature : null,
-    }));
-    setStarredEntries(normalizedEntries);
-    setStarredEntryIds(normalizedEntries.map((entry) => entry.id));
-  }, [visitorId]);
 
   const fetchEntries = useCallback(async () => {
     const response = await fetch(`/api/entries?limit=${RECENT_LIVE_LIMIT}`, {
@@ -147,11 +125,8 @@ export default function Home() {
   }, [fetchEntries]);
 
   useEffect(() => {
-    if (!visitorId) {
-      return;
-    }
-    void fetchStarredEntries();
-  }, [fetchStarredEntries, visitorId]);
+    setSavedTraces(getSavedTraces());
+  }, []);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY) {
@@ -246,7 +221,7 @@ export default function Home() {
     if (starringEntryIds[entryId]) {
       return;
     }
-    const wasStarred = starredEntryIds.includes(entryId);
+    const wasStarred = savedTraces.some((row) => row.id === entryId);
 
     setEntries((previousEntries) =>
       previousEntries.map((entry) =>
@@ -255,14 +230,39 @@ export default function Home() {
           : entry,
       ),
     );
+
     if (wasStarred) {
-      setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
-      setStarredEntries((previous) => previous.filter((entry) => entry.id !== entryId));
+      const snapshot = savedTraces.find((row) => row.id === entryId) ?? null;
+      if (snapshot) {
+        unstarRollbackByIdRef.current.set(entryId, snapshot);
+      } else {
+        unstarRollbackByIdRef.current.delete(entryId);
+      }
+      setSavedTraces((previous) => {
+        const next = previous.filter((row) => row.id !== entryId);
+        writeStoredSavedTraces(next);
+        return sortSavedTracesBySavedAt(next);
+      });
     } else {
-      setStarredEntryIds((previous) =>
-        previous.includes(entryId) ? previous : [...previous, entryId],
-      );
+      const baseEntry =
+        options?.sourceEntry ?? entries.find((entry) => entry.id === entryId);
+      if (baseEntry) {
+        const optimisticStars = baseEntry.stars + 1;
+        const row = buildSavedTraceFromEntry(
+          { ...baseEntry, stars: optimisticStars },
+          optimisticStars,
+        );
+        setSavedTraces((previous) => {
+          const next = sortSavedTracesBySavedAt([
+            ...previous.filter((t) => t.id !== entryId),
+            row,
+          ]);
+          writeStoredSavedTraces(next);
+          return next;
+        });
+      }
     }
+
     setStarringEntryIds((previous) => ({ ...previous, [entryId]: true }));
 
     try {
@@ -279,18 +279,41 @@ export default function Home() {
       if (!response.ok || typeof payload.stars !== "number") {
         throw new Error(payload.error ?? "Failed to star entry.");
       }
+      const serverStars = payload.stars;
 
       setEntries((previousEntries) =>
         previousEntries.map((entry) =>
-          entry.id === entryId ? { ...entry, stars: payload.stars ?? entry.stars } : entry,
+          entry.id === entryId ? { ...entry, stars: serverStars } : entry,
         ),
       );
-      if (payload.alreadyStarred === true || !wasStarred) {
-        setStarredEntryIds((previous) => (previous.includes(entryId) ? previous : [...previous, entryId]));
-      } else if (wasStarred) {
-        setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
-      }
-      void fetchStarredEntries();
+
+      setSavedTraces((previous) => {
+        if (wasStarred) {
+          writeStoredSavedTraces(previous);
+          return previous;
+        }
+        const hasRow = previous.some((row) => row.id === entryId);
+        let next: SavedTrace[];
+        if (hasRow) {
+          next = previous.map((row) =>
+            row.id === entryId ? { ...row, stars: serverStars } : row,
+          );
+        } else {
+          const baseEntry =
+            options?.sourceEntry ?? entries.find((entry) => entry.id === entryId);
+          if (baseEntry) {
+            next = sortSavedTracesBySavedAt([
+              ...previous,
+              buildSavedTraceFromEntry({ ...baseEntry, stars: serverStars }, serverStars),
+            ]);
+          } else {
+            next = previous;
+          }
+        }
+        writeStoredSavedTraces(next);
+        return sortSavedTracesBySavedAt(next);
+      });
+
       if (options?.closePanelOnSuccess) {
         setOpenPanel(null);
       }
@@ -303,15 +326,27 @@ export default function Home() {
         ),
       );
       if (wasStarred) {
-        setStarredEntryIds((previous) =>
-          previous.includes(entryId) ? previous : [...previous, entryId],
-        );
+        const snapshot = unstarRollbackByIdRef.current.get(entryId);
+        if (snapshot) {
+          setSavedTraces((previous) => {
+            const next = sortSavedTracesBySavedAt([
+              ...previous.filter((row) => row.id !== snapshot.id),
+              snapshot,
+            ]);
+            writeStoredSavedTraces(next);
+            return next;
+          });
+        }
       } else {
-        setStarredEntryIds((previous) => previous.filter((id) => id !== entryId));
+        setSavedTraces((previous) => {
+          const next = previous.filter((row) => row.id !== entryId);
+          writeStoredSavedTraces(next);
+          return next;
+        });
       }
-      void fetchStarredEntries();
       setErrorMessage("Could not save your star right now.");
     } finally {
+      unstarRollbackByIdRef.current.delete(entryId);
       setStarringEntryIds((previous) => {
         const next = { ...previous };
         delete next[entryId];
@@ -319,6 +354,15 @@ export default function Home() {
       });
     }
   }
+
+  const starredEntries = useMemo(
+    () => savedTraces.map(savedTraceToEntry),
+    [savedTraces],
+  );
+  const starredEntryIds = useMemo(
+    () => savedTraces.map((row) => row.id),
+    [savedTraces],
+  );
 
   return (
     <ThemeProvider>
@@ -403,6 +447,7 @@ function ThemedContent({
   onCloseReflection,
 }: ThemedContentProps) {
   const [showHint, setShowHint] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const [olderEntries, setOlderEntries] = useState<Entry[]>([]);
@@ -425,6 +470,18 @@ function ThemedContent({
     });
     return () => {
       window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const sync = () => {
+      setIsMobile(media.matches);
+    };
+    sync();
+    media.addEventListener("change", sync);
+    return () => {
+      media.removeEventListener("change", sync);
     };
   }, []);
 
@@ -555,8 +612,11 @@ function ThemedContent({
           isLoadingOlderEntries={isLoadingOlder}
           onLoadOlderEntries={loadOlderEntries}
           newlyAddedIds={newlyAddedIds}
-          onStar={(entryId) =>
-            onStar(entryId, { closePanelOnSuccess: window.innerWidth < 768 })
+          onStar={(entryId, starOpts) =>
+            onStar(entryId, {
+              ...starOpts,
+              closePanelOnSuccess: isMobile,
+            })
           }
           starringEntryIds={starringEntryIds}
           starredEntryIds={starredEntryIds}
@@ -565,8 +625,11 @@ function ThemedContent({
           isOpen={openPanel === "starred"}
           onClose={() => setOpenPanel(null)}
           entries={starredEntries}
-          onStar={(entryId) =>
-            onStar(entryId, { closePanelOnSuccess: window.innerWidth < 768 })
+          onStar={(entryId, starOpts) =>
+            onStar(entryId, {
+              ...starOpts,
+              closePanelOnSuccess: isMobile,
+            })
           }
           starringEntryIds={starringEntryIds}
         />

@@ -10,6 +10,8 @@ export type PanelType = "live" | "starred" | null;
 
 export type StarActionOptions = {
   closePanelOnSuccess?: boolean;
+  /** When starring from a list row, pass the entry so local saved-traces can persist metadata. */
+  sourceEntry?: Entry;
 };
 
 export type LoadingEntryMap = Record<string, boolean>;
