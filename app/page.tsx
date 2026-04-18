@@ -5,6 +5,7 @@ import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
 import { PurposeModal } from "@/components/ui/PurposeModal";
+import { ReflectionShareCard } from "@/components/ui/ReflectionShareCard";
 import { StarredPanel } from "@/components/panels/StarredPanel";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LiveTrigger } from "@/components/triggers/LiveTrigger";
@@ -50,7 +51,17 @@ export default function Home() {
   const [starredEntries, setStarredEntries] = useState<Entry[]>([]);
   const [visitorId, setVisitorId] = useState<string | null>(null);
   const [initialNextCursor, setInitialNextCursor] = useState<EntriesCursor | null>(null);
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const [reflectionText, setReflectionText] = useState("");
+  const [reflectionSignature, setReflectionSignature] = useState("");
   const isTyping = useTypingState(text, { idleDelayMs: 2600 });
+
+  const closeReflection = useCallback(() => {
+    setReflectionOpen(false);
+    window.requestAnimationFrame(() => {
+      document.getElementById("entry-text")?.focus({ preventScroll: true });
+    });
+  }, []);
 
   const fetchStarredEntries = useCallback(async () => {
     if (!visitorId) {
@@ -211,6 +222,11 @@ export default function Home() {
         return false;
       }
 
+      setReflectionText(trimmedText);
+      setReflectionSignature(signatureFromForm);
+      setReflectionOpen(true);
+      setText("");
+      setSignature("");
       setTurnstileToken("");
       await fetchEntries();
       return true;
@@ -326,6 +342,10 @@ export default function Home() {
         starredEntryIds={starredEntryIds}
         initialNextCursor={initialNextCursor}
         setErrorMessage={setErrorMessage}
+        reflectionOpen={reflectionOpen}
+        reflectionText={reflectionText}
+        reflectionSignature={reflectionSignature}
+        onCloseReflection={closeReflection}
       />
     </ThemeProvider>
   );
@@ -351,6 +371,10 @@ type ThemedContentProps = {
   starredEntryIds: string[];
   initialNextCursor: EntriesCursor | null;
   setErrorMessage: (value: string | null) => void;
+  reflectionOpen: boolean;
+  reflectionText: string;
+  reflectionSignature: string;
+  onCloseReflection: () => void;
 };
 
 function ThemedContent({
@@ -373,6 +397,10 @@ function ThemedContent({
   starredEntryIds,
   initialNextCursor,
   setErrorMessage,
+  reflectionOpen,
+  reflectionText,
+  reflectionSignature,
+  onCloseReflection,
 }: ThemedContentProps) {
   const [showHint, setShowHint] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
@@ -474,7 +502,7 @@ function ThemedContent({
   }, [isLoadingOlder, nextCursor, recentEntries, setErrorMessage]);
 
   return (
-    <main className="relative flex min-h-[100vh] min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
+    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
@@ -561,6 +589,7 @@ function ThemedContent({
             onSignatureChange={setSignature}
             onSubmit={handleSubmit}
             onFocusChange={setIsWritingFocused}
+            deferPostSubmitToParent
           />
         </div>
         {errorMessage ? (
@@ -587,6 +616,13 @@ function ThemedContent({
         </section>
       </div>
       <PurposeModal isOpen={isPurposeOpen} onClose={() => setIsPurposeOpen(false)} />
+      {reflectionOpen ? (
+        <ReflectionShareCard
+          traceText={reflectionText}
+          signature={reflectionSignature}
+          onClose={onCloseReflection}
+        />
+      ) : null}
     </main>
   );
 }

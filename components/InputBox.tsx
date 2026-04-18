@@ -15,6 +15,8 @@ type InputBoxProps = {
   onSignatureChange: (value: string) => void;
   onSubmit: (form: HTMLFormElement) => Promise<boolean>;
   onFocusChange?: (isFocused: boolean) => void;
+  /** When true, a successful submit does not show inline “saved” copy or delayed clearing — the parent handles the post-submit experience. */
+  deferPostSubmitToParent?: boolean;
 };
 
 const SIGNATURE_REVEAL_MIN_LENGTH = 20;
@@ -45,6 +47,7 @@ export function InputBox({
   onSignatureChange,
   onSubmit,
   onFocusChange,
+  deferPostSubmitToParent = false,
 }: InputBoxProps) {
   const { isFocused, onFocus, onBlur } = useFocusState();
   const [showSignatureInput, setShowSignatureInput] = useState(false);
@@ -189,17 +192,21 @@ export function InputBox({
     const form = event.currentTarget;
     await delay(SUBMIT_DELAY_MS);
     const wasSuccessful = await onSubmit(form);
-    if (wasSuccessful) {
-      setShowSavedFeedback(true);
-      if (savedFeedbackTimeoutRef.current !== null) {
-        window.clearTimeout(savedFeedbackTimeoutRef.current);
-      }
-      savedFeedbackTimeoutRef.current = window.setTimeout(() => {
-        onChange("");
-        onSignatureChange("");
-        setShowSavedFeedback(false);
-      }, 1700);
+    if (!wasSuccessful) {
+      return;
     }
+    if (deferPostSubmitToParent) {
+      return;
+    }
+    setShowSavedFeedback(true);
+    if (savedFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(savedFeedbackTimeoutRef.current);
+    }
+    savedFeedbackTimeoutRef.current = window.setTimeout(() => {
+      onChange("");
+      onSignatureChange("");
+      setShowSavedFeedback(false);
+    }, 1700);
   }
 
   return (

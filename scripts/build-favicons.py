@@ -5,6 +5,13 @@ Build production favicon assets from public/brand/favicon-source.png.
 Single source of truth for manualfor.life (landing) and app.manualfor.life (Next).
 Square masters use the full 1024×1024 canvas (no extra shrink). Non-square sources
 are letterboxed to a square, then scaled into an inner box with ~16% side padding.
+
+Outputs:
+  public/favicon.ico
+  public/brand/favicon-16x16.png, favicon-32x32.png
+  public/brand/apple-touch-icon.png (180)
+  public/brand/icon-192.png, icon-512.png
+  public/brand/icon-512-maskable.png (512, extra safe-zone for purpose: maskable)
 Run from repo root: python3 scripts/build-favicons.py
 """
 from __future__ import annotations
@@ -18,13 +25,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "public" / "brand" / "favicon-source.png"
 BRAND = ROOT / "public" / "brand"
 PUBLIC = ROOT / "public"
-APP = ROOT / "app"
 
 MASTER = 1024
 SIDE_PADDING_FRAC = 0.16
 INNER = max(1, int(round(MASTER * (1 - 2 * SIDE_PADDING_FRAC))))
 
+# Warm beige — brand shell (matches layout themeColor)
 BG = (248, 245, 240, 255)
+
+# Maskable: keep monogram inside ~58% of edge so circle crops stay clean
+MASKABLE_INNER_FRAC = 0.58
 
 
 def build_master_1024(im: Image.Image) -> Image.Image:
@@ -34,7 +44,6 @@ def build_master_1024(im: Image.Image) -> Image.Image:
     out = Image.new("RGBA", (MASTER, MASTER), BG)
 
     if w == h:
-        # Canonical square brand asset → use full canvas (same pixels at 1024×1024).
         fg = ImageOps.contain(im, (MASTER, MASTER), method=Image.Resampling.LANCZOS)
     else:
         fg = ImageOps.contain(im, (INNER, INNER), method=Image.Resampling.LANCZOS)
@@ -59,6 +68,18 @@ def downscale(master: Image.Image, size: int) -> Image.Image:
     return out
 
 
+def build_maskable_512(master: Image.Image) -> Image.Image:
+    """512×512 with tighter inset monogram for Android maskable / adaptive icons."""
+    size = 512
+    out = Image.new("RGBA", (size, size), BG)
+    inner = max(1, int(round(size * MASKABLE_INNER_FRAC)))
+    fg = ImageOps.contain(master, (inner, inner), method=Image.Resampling.LANCZOS)
+    ox = (size - fg.width) // 2
+    oy = (size - fg.height) // 2
+    out.alpha_composite(fg, (ox, oy))
+    return out
+
+
 def main() -> int:
     if not SOURCE.is_file():
         print(f"Missing source: {SOURCE}", file=sys.stderr)
@@ -71,11 +92,15 @@ def main() -> int:
         "favicon-16x16.png": 16,
         "favicon-32x32.png": 32,
         "apple-touch-icon.png": 180,
-        "android-chrome-192x192.png": 192,
-        "android-chrome-512x512.png": 512,
+        "icon-192.png": 192,
+        "icon-512.png": 512,
     }
     for name, px in sizes.items():
         downscale(master, px).save(BRAND / name, format="PNG", optimize=True)
+
+    build_maskable_512(master).save(
+        BRAND / "icon-512-maskable.png", format="PNG", optimize=True
+    )
 
     i16 = downscale(master, 16)
     i32 = downscale(master, 32)
@@ -86,12 +111,20 @@ def main() -> int:
         append_images=[i16],
     )
 
-    downscale(master, 512).save(APP / "icon.png", format="PNG", optimize=True)
-
     print("Wrote:", PUBLIC / "favicon.ico")
     for name in sizes:
         print("Wrote:", BRAND / name)
-    print("Wrote:", APP / "icon.png")
+    print("Wrote:", BRAND / "icon-512-maskable.png")
+
+    legacy = [
+        BRAND / "android-chrome-192x192.png",
+        BRAND / "android-chrome-512x512.png",
+    ]
+    for path in legacy:
+        if path.is_file():
+            path.unlink()
+            print("Removed legacy:", path)
+
     return 0
 
 
