@@ -24,7 +24,25 @@ const caveat = Caveat({
 });
 
 const appSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.manualfor.life";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://manualfor.life";
+
+/**
+ * Favicon files live on this Next deployment, while metadataBase stays on the
+ * marketing domain for OG/Twitter. Relative icon URLs would otherwise resolve
+ * against metadataBase and load from manualfor.life (stale / wrong tree).
+ */
+function iconAssetOrigin(): string {
+  if (typeof process.env.VERCEL_URL === "string" && process.env.VERCEL_URL.length > 0) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  if (process.env.NODE_ENV === "development") {
+    return `http://localhost:${process.env.PORT ?? "3000"}`;
+  }
+  return "https://app.manualfor.life";
+}
+
+const iconOnDeployment = (path: string) =>
+  new URL(path, iconAssetOrigin());
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -33,10 +51,15 @@ export const viewport: Viewport = {
   themeColor: "#f8f5f0",
 };
 
+const shareTitle = "Manualfor.life — One thought worth keeping";
+const shareDescription = "A quiet place to leave one thought that mattered.";
+const ogImageAlt =
+  "One thought can travel further than we do. — Manualfor.life";
+
 export const metadata: Metadata = {
   metadataBase: new URL(appSiteUrl),
-  title: "Manualfor.life — Leave a trace",
-  description: "Leave one thought for someone you will never meet.",
+  title: shareTitle,
+  description: shareDescription,
   applicationName: "Manualfor.life",
   alternates: {
     canonical: "/",
@@ -52,40 +75,50 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: appSiteUrl,
     siteName: "Manualfor.life",
-    title: "Manualfor.life App",
-    description: "Leave a trace. Read what remains.",
+    title: shareTitle,
+    description: shareDescription,
     images: [
       {
-        url: "/og/og-ecosystem.png",
+        url: "/og/og-share.png",
         width: 1200,
         height: 630,
-        alt: "Manualfor.life — A place where people leave one thought that changed their life.",
+        alt: ogImageAlt,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Manualfor.life App",
-    description: "Leave a trace. Read what remains.",
-    images: ["/og/og-ecosystem.png"],
+    title: shareTitle,
+    description: shareDescription,
+    images: ["/og/og-share.png"],
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/favicon-32x32.png", type: "image/png", sizes: "32x32" },
-      { url: "/brand/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: iconOnDeployment("/favicon.ico?v=3"), sizes: "any" },
       {
-        url: "/brand/android-chrome-192x192.png",
+        url: iconOnDeployment("/brand/favicon-32x32.png?v=3"),
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        url: iconOnDeployment("/brand/favicon-16x16.png?v=3"),
+        type: "image/png",
+        sizes: "16x16",
+      },
+      {
+        url: iconOnDeployment("/brand/icon-192.png?v=3"),
         type: "image/png",
         sizes: "192x192",
       },
       {
-        url: "/brand/android-chrome-512x512.png",
+        url: iconOnDeployment("/brand/icon-512.png?v=3"),
         type: "image/png",
         sizes: "512x512",
       },
     ],
-    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [
+      { url: iconOnDeployment("/brand/apple-touch-icon.png?v=3"), sizes: "180x180" },
+    ],
   },
 };
 

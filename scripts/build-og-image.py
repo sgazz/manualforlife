@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Render shared Open Graph image (1200×630) for Manualfor.life ecosystem.
+Render Open Graph image (1200×630) for Manualfor.life social previews.
 Requires: scripts/fonts/CormorantGaramond[wght].ttf (from Google Fonts OFL).
 Run from repo root: python3 scripts/build-og-image.py
 """
@@ -12,13 +12,14 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "public" / "og" / "og-ecosystem.png"
+OUT = ROOT / "public" / "og" / "og-share.png"
 FONT = ROOT / "scripts" / "fonts" / "CormorantGaramond[wght].ttf"
 
 W, H = 1200, 630
-BG = "#f8f5f0"
-TEXT = "#1f1a17"
-MUTED = "#6f675f"
+# Warm paper — aligned with theme-reflection / landing
+BG = "#faf7f2"
+TEXT = "#3f2a1d"
+BRAND = "#6b4a2c"
 
 
 def main() -> int:
@@ -30,36 +31,40 @@ def main() -> int:
     img = Image.new("RGB", (W, H), BG)
     draw = ImageDraw.Draw(img)
 
-    font_title = ImageFont.truetype(str(FONT), 96)
-    font_sub = ImageFont.truetype(str(FONT), 40)
+    font_quote = ImageFont.truetype(str(FONT), 68)
+    font_brand = ImageFont.truetype(str(FONT), 30)
 
-    title = "Manualfor.life"
-    lines = [
-        "A place where people leave one thought",
-        "that changed their life.",
+    quote_lines = [
+        "One thought",
+        "can travel further",
+        "than we do.",
     ]
+    brand = "Manualfor.life"
 
-    title_bb = draw.textbbox((0, 0), title, font=font_title)
-    title_w = title_bb[2] - title_bb[0]
-    title_h = title_bb[3] - title_bb[1]
+    line_gap = 10
+    quote_heights: list[int] = []
+    quote_widths: list[int] = []
+    for line in quote_lines:
+        bb = draw.textbbox((0, 0), line, font=font_quote)
+        quote_heights.append(bb[3] - bb[1])
+        quote_widths.append(bb[2] - bb[0])
 
-    sub_heights = []
-    sub_widths = []
-    for line in lines:
-        bb = draw.textbbox((0, 0), line, font=font_sub)
-        sub_heights.append(bb[3] - bb[1])
-        sub_widths.append(bb[2] - bb[0])
-    gap = 14
-    block_h = title_h + 56 + sum(sub_heights) + gap * (len(lines) - 1)
-    y0 = (H - block_h) // 2
+    brand_bb = draw.textbbox((0, 0), brand, font=font_brand)
+    brand_w = brand_bb[2] - brand_bb[0]
+    brand_h = brand_bb[3] - brand_bb[1]
 
-    tx = (W - title_w) // 2
-    draw.text((tx, y0), title, font=font_title, fill=TEXT)
+    quote_block_h = sum(quote_heights) + line_gap * (len(quote_lines) - 1)
+    gap_quote_brand = 52
+    total_h = quote_block_h + gap_quote_brand + brand_h
+    y0 = (H - total_h) // 2
 
-    y = y0 + title_h + 56
-    for line, sw, sh in zip(lines, sub_widths, sub_heights):
-        draw.text(((W - sw) // 2, y), line, font=font_sub, fill=MUTED)
-        y += sh + gap
+    y = y0
+    for line, sw, sh in zip(quote_lines, quote_widths, quote_heights):
+        draw.text(((W - sw) // 2, y), line, font=font_quote, fill=TEXT)
+        y += sh + line_gap
+
+    y += gap_quote_brand - line_gap
+    draw.text(((W - brand_w) // 2, y), brand, font=font_brand, fill=BRAND)
 
     img.save(OUT, format="PNG", optimize=True)
     print("Wrote:", OUT)
