@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
@@ -58,7 +58,6 @@ export default function Home() {
     {},
   );
   const [savedTraces, setSavedTraces] = useState<SavedTrace[]>([]);
-  const unstarRollbackByIdRef = useRef<Map<string, SavedTrace>>(new Map());
   const [visitorId, setVisitorId] = useState<string | null>(null);
   const [initialNextCursor, setInitialNextCursor] = useState<EntriesCursor | null>(null);
   const [reflectionOpen, setReflectionOpen] = useState(false);
@@ -232,12 +231,6 @@ export default function Home() {
     );
 
     if (wasStarred) {
-      const snapshot = savedTraces.find((row) => row.id === entryId) ?? null;
-      if (snapshot) {
-        unstarRollbackByIdRef.current.set(entryId, snapshot);
-      } else {
-        unstarRollbackByIdRef.current.delete(entryId);
-      }
       setSavedTraces((previous) => {
         const next = previous.filter((row) => row.id !== entryId);
         writeStoredSavedTraces(next);
@@ -263,12 +256,17 @@ export default function Home() {
       }
     }
 
+    if (options?.closePanelOnSuccess) {
+      setOpenPanel(null);
+    }
+
+    if (!visitorId) {
+      return;
+    }
+
     setStarringEntryIds((previous) => ({ ...previous, [entryId]: true }));
 
     try {
-      if (!visitorId) {
-        throw new Error("Missing visitor identity.");
-      }
       const response = await fetch(`/api/entries/${entryId}/star`, {
         method: wasStarred ? "DELETE" : "POST",
         headers: {
@@ -287,35 +285,32 @@ export default function Home() {
         ),
       );
 
-      setSavedTraces((previous) => {
-        if (wasStarred) {
-          writeStoredSavedTraces(previous);
-          return previous;
-        }
-        const hasRow = previous.some((row) => row.id === entryId);
-        let next: SavedTrace[];
-        if (hasRow) {
-          next = previous.map((row) =>
-            row.id === entryId ? { ...row, stars: serverStars } : row,
-          );
-        } else {
-          const baseEntry =
-            options?.sourceEntry ?? entries.find((entry) => entry.id === entryId);
-          if (baseEntry) {
-            next = sortSavedTracesBySavedAt([
-              ...previous,
-              buildSavedTraceFromEntry({ ...baseEntry, stars: serverStars }, serverStars),
-            ]);
+      if (!wasStarred) {
+        setSavedTraces((previous) => {
+          const hasRow = previous.some((row) => row.id === entryId);
+          let next: SavedTrace[];
+          if (hasRow) {
+            next = previous.map((row) =>
+              row.id === entryId ? { ...row, stars: serverStars } : row,
+            );
           } else {
-            next = previous;
+            const baseEntry =
+              options?.sourceEntry ?? entries.find((entry) => entry.id === entryId);
+            if (baseEntry) {
+              next = sortSavedTracesBySavedAt([
+                ...previous,
+                buildSavedTraceFromEntry(
+                  { ...baseEntry, stars: serverStars },
+                  serverStars,
+                ),
+              ]);
+            } else {
+              next = previous;
+            }
           }
-        }
-        writeStoredSavedTraces(next);
-        return sortSavedTracesBySavedAt(next);
-      });
-
-      if (options?.closePanelOnSuccess) {
-        setOpenPanel(null);
+          writeStoredSavedTraces(next);
+          return sortSavedTracesBySavedAt(next);
+        });
       }
     } catch {
       setEntries((previousEntries) =>
@@ -325,28 +320,8 @@ export default function Home() {
             : entry,
         ),
       );
-      if (wasStarred) {
-        const snapshot = unstarRollbackByIdRef.current.get(entryId);
-        if (snapshot) {
-          setSavedTraces((previous) => {
-            const next = sortSavedTracesBySavedAt([
-              ...previous.filter((row) => row.id !== snapshot.id),
-              snapshot,
-            ]);
-            writeStoredSavedTraces(next);
-            return next;
-          });
-        }
-      } else {
-        setSavedTraces((previous) => {
-          const next = previous.filter((row) => row.id !== entryId);
-          writeStoredSavedTraces(next);
-          return next;
-        });
-      }
-      setErrorMessage("Could not save your star right now.");
+      setErrorMessage("Saved locally. Could not sync star count right now.");
     } finally {
-      unstarRollbackByIdRef.current.delete(entryId);
       setStarringEntryIds((previous) => {
         const next = { ...previous };
         delete next[entryId];
