@@ -8,7 +8,8 @@ type LogReason =
   | "turnstile_failed"
   | "database_error"
   | "payload_too_large"
-  | "shadow_ban_active";
+  | "shadow_ban_active"
+  | "translation_upstream_error";
 
 type LogParams = {
   ip: string;

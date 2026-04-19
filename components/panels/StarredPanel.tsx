@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
+import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
 type StarredPanelProps = {
@@ -61,6 +62,7 @@ export function StarredPanel({
                     &mdash; {entry.signature}
                   </p>
                 ) : null}
+                <TraceReadInLanguage entryId={entry.id} sourceText={entry.text} variant="panel" />
                 <div className="mt-3.5 flex items-center justify-between text-xs text-(--theme-muted)/55">
                   <span
                     suppressHydrationWarning

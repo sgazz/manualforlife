@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import type { Entry, LoadingEntryMap } from "@/types/ui";
 
 type EntriesListProps = {
@@ -181,6 +182,11 @@ export function EntriesList({
                       &mdash; {entry.signature}
                     </p>
                   ) : null}
+                  <TraceReadInLanguage
+                    entryId={entry.id}
+                    sourceText={entry.text}
+                    variant="surface"
+                  />
                 </li>
               );
             })}

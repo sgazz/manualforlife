@@ -23,6 +23,11 @@ TURNSTILE_EXPECTED_ACTION=submit
 LOG_HASH_SALT=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+
+# opciono (on-demand prevod tragova, „Read in my language“)
+OPENAI_API_KEY=
+# opciono (podrazumevano: gpt-4o-mini)
+OPENAI_TRANSLATION_MODEL=
 ```
 
 ## Napomene

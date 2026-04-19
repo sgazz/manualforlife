@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
+import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
 type LivePanelProps = {
@@ -122,6 +123,7 @@ export function LivePanel({
                       &mdash; {entry.signature}
                     </p>
                   ) : null}
+                  <TraceReadInLanguage entryId={entry.id} sourceText={entry.text} variant="panel" />
                 </li>
               );
             })}
@@ -187,6 +189,11 @@ export function LivePanel({
                           &mdash; {entry.signature}
                         </p>
                       ) : null}
+                      <TraceReadInLanguage
+                        entryId={entry.id}
+                        sourceText={entry.text}
+                        variant="panel"
+                      />
                     </li>
                   );
                 })}

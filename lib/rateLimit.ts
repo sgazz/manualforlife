@@ -14,6 +14,8 @@ const STAR_RATE_LIMIT_WINDOW_MS = 60_000;
 const STAR_RATE_LIMIT_MAX_REQUESTS = 15;
 const SIGNATURE_RATE_LIMIT_WINDOW_MS = 60_000;
 const SIGNATURE_RATE_LIMIT_MAX_REQUESTS = 5;
+const TRANSLATE_RATE_LIMIT_WINDOW_MS = 60_000;
+const TRANSLATE_RATE_LIMIT_MAX_REQUESTS = 30;
 const ENTRY_TTL_MS = 120_000;
 const CLEANUP_INTERVAL_MS = 60_000;
 const SHADOW_BAN_THRESHOLD = 5;
@@ -23,6 +25,7 @@ const store = new Map<string, RateLimitEntry>();
 const submissionWindowStore = new Map<string, { timestamp: number; requestCount: number }>();
 const starWindowStore = new Map<string, { timestamp: number; requestCount: number }>();
 const signatureWindowStore = new Map<string, { timestamp: number; requestCount: number }>();
+const translateWindowStore = new Map<string, { timestamp: number; requestCount: number }>();
 
 function getOrCreateEntry(ip: string, now: number) {
   const current = store.get(ip);
@@ -64,6 +67,12 @@ function cleanupExpiredEntries() {
   for (const [key, entry] of signatureWindowStore.entries()) {
     if (now - entry.timestamp > ENTRY_TTL_MS) {
       signatureWindowStore.delete(key);
+    }
+  }
+
+  for (const [key, entry] of translateWindowStore.entries()) {
+    if (now - entry.timestamp > ENTRY_TTL_MS) {
+      translateWindowStore.delete(key);
     }
   }
 }
@@ -167,6 +176,31 @@ export function checkSignatureRateLimit(key: string): RateLimitResult {
     return {
       allowed: false,
       retryAfterMs: Math.max(0, SIGNATURE_RATE_LIMIT_WINDOW_MS - (now - entry.timestamp)),
+    };
+  }
+
+  return { allowed: true, retryAfterMs: 0 };
+}
+
+export function checkTranslateRateLimit(key: string): RateLimitResult {
+  const now = Date.now();
+  const entry = translateWindowStore.get(key);
+  if (!entry) {
+    translateWindowStore.set(key, { timestamp: now, requestCount: 1 });
+    return { allowed: true, retryAfterMs: 0 };
+  }
+
+  if (now - entry.timestamp > TRANSLATE_RATE_LIMIT_WINDOW_MS) {
+    entry.timestamp = now;
+    entry.requestCount = 1;
+    return { allowed: true, retryAfterMs: 0 };
+  }
+
+  entry.requestCount += 1;
+  if (entry.requestCount > TRANSLATE_RATE_LIMIT_MAX_REQUESTS) {
+    return {
+      allowed: false,
+      retryAfterMs: Math.max(0, TRANSLATE_RATE_LIMIT_WINDOW_MS - (now - entry.timestamp)),
     };
   }
 
