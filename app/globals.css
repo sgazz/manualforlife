@@ -191,6 +191,28 @@ textarea {
   animation-iteration-count: infinite;
 }
 
+@keyframes traceInviteCaretFade {
+  0% {
+    opacity: 0.18;
+  }
+  42% {
+    opacity: 0.72;
+  }
+  58% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0.18;
+  }
+}
+
+.animate-traceInviteCaretFade {
+  animation-name: traceInviteCaretFade;
+  animation-duration: 2.75s;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  animation-iteration-count: infinite;
+}
+
 .trace-transition {
   display: inline-block;
   will-change: opacity, transform;

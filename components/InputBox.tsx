@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import Script from "next/script";
 import { RotatingPrompt } from "@/components/RotatingPrompt";
 import { CustomCaret } from "@/components/ui/CustomCaret";
@@ -6,24 +13,28 @@ import { useFocusState } from "@/hooks/useFocusState";
 
 type InputBoxProps = {
   value: string;
-  signature: string;
   maxLength: number;
   isSubmitting: boolean;
   turnstileSiteKey?: string;
   hasTurnstileToken?: boolean;
   onChange: (value: string) => void;
-  onSignatureChange: (value: string) => void;
   onSubmit: (form: HTMLFormElement) => Promise<boolean>;
   onFocusChange?: (isFocused: boolean) => void;
   /** When true, a successful submit does not show inline “saved” copy or delayed clearing — the parent handles the post-submit experience. */
   deferPostSubmitToParent?: boolean;
+  /** Hides the desktop trace invitation caret (e.g. while panels or modals are open). */
+  chromeSuppressed?: boolean;
 };
 
-const SIGNATURE_REVEAL_MIN_LENGTH = 20;
-const SIGNATURE_MAX_LENGTH = 30;
 const SUBMIT_DELAY_MS = 240;
 const COUNTER_THRESHOLDS = [50, 100, 150] as const;
 const COUNTER_FLASH_MS = 3000;
+/** Skip programmatic focus on narrow or touch-primary viewports to avoid popping the software keyboard. */
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
+const COARSE_POINTER_MEDIA_QUERY = "(pointer: coarse)";
+/** ~5 rows incl. padding (mobile) / ~6 rows (desktop) — auto-grow clamps to max px. */
+const TRACE_TEXTAREA_MIN_HEIGHT_PX = { narrow: 168, wide: 212 } as const;
+const TRACE_TEXTAREA_MAX_HEIGHT_PX = { narrow: 208, wide: 272 } as const;
 const PROMPTS = [
   "What would you tell your younger self?",
   "What changed the way you see things?",
@@ -38,32 +49,29 @@ function delay(ms: number) {
 
 export function InputBox({
   value,
-  signature,
   maxLength,
   isSubmitting,
   turnstileSiteKey,
   hasTurnstileToken = false,
   onChange,
-  onSignatureChange,
   onSubmit,
   onFocusChange,
   deferPostSubmitToParent = false,
+  chromeSuppressed = false,
 }: InputBoxProps) {
   const { isFocused, onFocus, onBlur } = useFocusState();
-  const [showSignatureInput, setShowSignatureInput] = useState(false);
-  const [isSignatureFocused, setIsSignatureFocused] = useState(false);
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
-  const signatureInputRef = useRef<HTMLInputElement | null>(null);
   const previousLengthRef = useRef(value.length);
   const currentLengthRef = useRef(value.length);
   const counterTimeoutRef = useRef<number | null>(null);
   const savedFeedbackTimeoutRef = useRef<number | null>(null);
   const [isCounterVisible, setIsCounterVisible] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [inviteChromeEligible, setInviteChromeEligible] = useState(false);
 
   const requiresTurnstile = Boolean(turnstileSiteKey);
   const normalizedValue = value.trim();
   const hasText = normalizedValue.length > 0;
-  const canRevealSignature = normalizedValue.length > SIGNATURE_REVEAL_MIN_LENGTH;
 
   const isInvalid =
     normalizedValue.length === 0 ||
@@ -93,18 +101,6 @@ export function InputBox({
       label: "Refine it",
     };
   }, [value.length]);
-
-  useEffect(() => {
-    if (!showSignatureInput || !canRevealSignature || !signatureInputRef.current) {
-      return;
-    }
-
-    signatureInputRef.current.focus({ preventScroll: true });
-    signatureInputRef.current.setSelectionRange(
-      signatureInputRef.current.value.length,
-      signatureInputRef.current.value.length,
-    );
-  }, [canRevealSignature, showSignatureInput]);
 
   useEffect(() => {
     const currentLength = value.length;
@@ -174,6 +170,52 @@ export function InputBox({
   }, [maxLength, value.length]);
 
   useEffect(() => {
+    const narrow = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const coarse = window.matchMedia(COARSE_POINTER_MEDIA_QUERY);
+    if (narrow.matches || coarse.matches) {
+      return;
+    }
+    const frame = window.requestAnimationFrame(() => {
+      textareaRef.current?.focus({ preventScroll: true });
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const narrow = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const coarse = window.matchMedia(COARSE_POINTER_MEDIA_QUERY);
+    const sync = () => {
+      setInviteChromeEligible(!narrow.matches && !coarse.matches);
+    };
+    sync();
+    narrow.addEventListener("change", sync);
+    coarse.addEventListener("change", sync);
+    return () => {
+      narrow.removeEventListener("change", sync);
+      coarse.removeEventListener("change", sync);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) {
+      return;
+    }
+    const narrow = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+    const minPx = narrow
+      ? TRACE_TEXTAREA_MIN_HEIGHT_PX.narrow
+      : TRACE_TEXTAREA_MIN_HEIGHT_PX.wide;
+    const maxPx = narrow
+      ? TRACE_TEXTAREA_MAX_HEIGHT_PX.narrow
+      : TRACE_TEXTAREA_MAX_HEIGHT_PX.wide;
+    el.style.height = "0px";
+    const next = Math.min(Math.max(el.scrollHeight, minPx), maxPx);
+    el.style.height = `${next}px`;
+  }, [value]);
+
+  useEffect(() => {
     return () => {
       if (counterTimeoutRef.current !== null) {
         window.clearTimeout(counterTimeoutRef.current);
@@ -204,10 +246,15 @@ export function InputBox({
     }
     savedFeedbackTimeoutRef.current = window.setTimeout(() => {
       onChange("");
-      onSignatureChange("");
       setShowSavedFeedback(false);
     }, 1700);
   }
+
+  const showTraceInviteCaret =
+    inviteChromeEligible &&
+    isFocused &&
+    !hasText &&
+    !chromeSuppressed;
 
   return (
     <div className="relative">
@@ -239,83 +286,55 @@ export function InputBox({
           aria-hidden="true"
         />
         <div className="relative space-y-1.5 sm:space-y-2">
-          <RotatingPrompt prompts={PROMPTS} paused={isFocused || hasText} />
-          <textarea
-            id="entry-text"
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            onFocus={() => {
-              onFocus();
-              onFocusChange?.(true);
-            }}
-            onBlur={() => {
-              onBlur();
-              onFocusChange?.(false);
-            }}
-            maxLength={maxLength}
-            className={`typography-ui w-full scroll-mt-24 resize-none rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-[box-shadow,min-height] duration-300 focus:ring-0 motion-reduce:transition-none sm:min-h-40 sm:px-6 sm:py-5 sm:text-lg sm:leading-8 ${
-              isFocused ? "min-h-60 sm:min-h-52" : "min-h-44 sm:min-h-40"
+          <div
+            aria-hidden={hasText ? true : undefined}
+            className={`transition-opacity duration-400 ease-out motion-reduce:transition-none ${
+              hasText ? "pointer-events-none opacity-0" : "opacity-100"
             }`}
-            style={{
-              borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",
-              backgroundColor: "color-mix(in srgb, var(--theme-surface) 96%, white 4%)",
-              boxShadow: isFocused
-                ? "inset 0 -2px 0 color-mix(in srgb, var(--theme-accent) 35%, transparent)"
-                : "inset 0 -1px 0 color-mix(in srgb, var(--theme-border) 45%, transparent)",
-            }}
-          />
+          >
+            <RotatingPrompt prompts={PROMPTS} paused={hasText} />
+          </div>
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              id="entry-text"
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              onFocus={() => {
+                onFocus();
+                onFocusChange?.(true);
+              }}
+              onBlur={() => {
+                onBlur();
+                onFocusChange?.(false);
+              }}
+              maxLength={maxLength}
+              rows={1}
+              className="typography-ui relative z-0 w-full scroll-mt-24 resize-none overflow-y-auto overflow-x-hidden rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-[box-shadow] duration-300 focus:ring-0 motion-reduce:transition-none sm:px-6 sm:py-5 sm:text-lg sm:leading-8"
+              style={{
+                borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",
+                backgroundColor: "color-mix(in srgb, var(--theme-surface) 96%, white 4%)",
+                boxShadow: isFocused
+                  ? "inset 0 -2px 0 color-mix(in srgb, var(--theme-accent) 35%, transparent)"
+                  : "inset 0 -1px 0 color-mix(in srgb, var(--theme-border) 45%, transparent)",
+                caretColor: showTraceInviteCaret ? "transparent" : undefined,
+              }}
+            />
+            <CustomCaret
+              variant="invite"
+              visible={showTraceInviteCaret}
+              className="top-[1.875rem] left-4 -translate-y-1/2 sm:top-[2.25rem] sm:left-6"
+            />
+          </div>
         </div>
 
         <p className="typography-hint text-(--theme-muted)/75">
           Keep it simple. One idea is enough.
         </p>
 
-        <div
-          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 motion-reduce:transition-none ${
-            canRevealSignature ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="min-h-0">
-            {!showSignatureInput || !canRevealSignature ? (
-            <button
-              type="button"
-              disabled={!canRevealSignature}
-              onClick={() => setShowSignatureInput(true)}
-              title="Add signature"
-              className="inline-flex min-h-11 items-center text-xs text-(--theme-muted)/80 underline decoration-transparent transition-colors hover:decoration-current disabled:cursor-default disabled:no-underline"
-            >
-              Would you like to sign it?
-            </button>
-          ) : (
-            <div className="relative">
-              <input
-                ref={signatureInputRef}
-                type="text"
-                name="signature"
-                value={signature}
-                onChange={(event) =>
-                  onSignatureChange(event.target.value.slice(0, SIGNATURE_MAX_LENGTH))
-                }
-                onFocus={() => setIsSignatureFocused(true)}
-                onBlur={() => setIsSignatureFocused(false)}
-                maxLength={SIGNATURE_MAX_LENGTH}
-                placeholder="Your name (optional)"
-                className="w-full scroll-mt-24 rounded-lg border px-3 py-2 font-sans text-base leading-normal tracking-[0.01em] text-(--theme-text) outline-none transition-shadow placeholder:text-(--theme-muted)/70 focus:ring-2 focus:ring-(--theme-accent-soft)"
-                style={{
-                  borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
-                  backgroundColor: "color-mix(in srgb, var(--theme-surface) 94%, white 6%)",
-                  caretColor: "transparent",
-                }}
-              />
-              <CustomCaret visible={isSignatureFocused} />
-            </div>
-            )}
-          </div>
-        </div>
-
         {value.trim().length > 0 ? (
           <blockquote
-            className="rounded-xl border px-4 py-3 text-center italic"
+            className="rounded-xl border px-4 py-3 text-center italic transition-opacity duration-300 motion-reduce:transition-none"
             style={{
               borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
               backgroundColor: "color-mix(in srgb, var(--theme-surface) 90%, white 10%)",
@@ -323,11 +342,6 @@ export function InputBox({
             }}
           >
             <p>&ldquo;{value.trim()}&rdquo;</p>
-            {signature.trim().length > 0 ? (
-              <footer className="typography-signature mt-2 not-italic text-(--theme-muted)">
-                &mdash; {signature.trim()}
-              </footer>
-            ) : null}
           </blockquote>
         ) : null}
 

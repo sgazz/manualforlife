@@ -113,13 +113,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
-  const { error } = await supabaseServer.from("entries").insert({
-    text: validation.normalizedText,
-    stars: 0,
-    signature: normalizeSignature(payload.signature),
-  });
+  const { data, error } = await supabaseServer
+    .from("entries")
+    .insert({
+      text: validation.normalizedText,
+      stars: 0,
+      signature: normalizeSignature(payload.signature),
+    })
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data?.id) {
     registerViolation(rateLimitKey);
     logAbuseAttempt({
       ip: rateLimitKey,
@@ -129,5 +133,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to save entry" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true }, { status: 201 });
+  return NextResponse.json({ success: true, id: data.id }, { status: 201 });
 }

@@ -52,8 +52,8 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [signature, setSignature] = useState("");
   const [openPanel, setOpenPanel] = useState<PanelType>(null);
+  const [pendingEntryId, setPendingEntryId] = useState<string | null>(null);
   const [starringEntryIds, setStarringEntryIds] = useState<LoadingEntryMap>(
     {},
   );
@@ -64,13 +64,6 @@ export default function Home() {
   const [reflectionText, setReflectionText] = useState("");
   const [reflectionSignature, setReflectionSignature] = useState("");
   const isTyping = useTypingState(text, { idleDelayMs: 2600 });
-
-  const closeReflection = useCallback(() => {
-    setReflectionOpen(false);
-    window.requestAnimationFrame(() => {
-      document.getElementById("entry-text")?.focus({ preventScroll: true });
-    });
-  }, []);
 
   const fetchEntries = useCallback(async () => {
     const response = await fetch(`/api/entries?limit=${RECENT_LIVE_LIMIT}`, {
@@ -96,6 +89,16 @@ export default function Home() {
     setInitialNextCursor(payload.nextCursor ?? null);
     setErrorMessage(null);
   }, []);
+
+  const closeReflection = useCallback(() => {
+    setReflectionOpen(false);
+    setPendingEntryId(null);
+    setReflectionSignature("");
+    void fetchEntries();
+    window.requestAnimationFrame(() => {
+      document.getElementById("entry-text")?.focus({ preventScroll: true });
+    });
+  }, [fetchEntries]);
 
   useEffect(() => {
     const storageKey = "visitor-id";
@@ -164,10 +167,6 @@ export default function Home() {
 
     const formData = new FormData(form);
     const website = String(formData.get("website") ?? "");
-    const signatureFromForm = String(formData.get("signature") ?? "")
-      .trim()
-      .slice(0, 30);
-
     const trimmedText = text.trim();
     if (!trimmedText || trimmedText.length > MAX_LENGTH) {
       return false;
@@ -186,10 +185,9 @@ export default function Home() {
           text: trimmedText,
           website,
           turnstileToken,
-          signature: signatureFromForm || undefined,
         }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as { error?: string; id?: string };
 
       if (!response.ok) {
         setErrorMessage(payload.error ?? "Failed to save entry.");
@@ -197,10 +195,10 @@ export default function Home() {
       }
 
       setReflectionText(trimmedText);
-      setReflectionSignature(signatureFromForm);
+      setReflectionSignature("");
+      setPendingEntryId(typeof payload.id === "string" ? payload.id : null);
       setReflectionOpen(true);
       setText("");
-      setSignature("");
       setTurnstileToken("");
       await fetchEntries();
       return true;
@@ -347,8 +345,6 @@ export default function Home() {
         isSubmitting={isSubmitting}
         turnstileToken={turnstileToken}
         handleSubmit={handleSubmit}
-        signature={signature}
-        setSignature={setSignature}
         errorMessage={errorMessage}
         entries={entries}
         isLoading={isLoading}
@@ -364,6 +360,8 @@ export default function Home() {
         reflectionOpen={reflectionOpen}
         reflectionText={reflectionText}
         reflectionSignature={reflectionSignature}
+        setReflectionSignature={setReflectionSignature}
+        pendingEntryId={pendingEntryId}
         onCloseReflection={closeReflection}
       />
     </ThemeProvider>
@@ -376,8 +374,6 @@ type ThemedContentProps = {
   isSubmitting: boolean;
   turnstileToken: string;
   handleSubmit: (form: HTMLFormElement) => Promise<boolean>;
-  signature: string;
-  setSignature: (value: string) => void;
   errorMessage: string | null;
   entries: Entry[];
   isLoading: boolean;
@@ -393,6 +389,8 @@ type ThemedContentProps = {
   reflectionOpen: boolean;
   reflectionText: string;
   reflectionSignature: string;
+  setReflectionSignature: (value: string) => void;
+  pendingEntryId: string | null;
   onCloseReflection: () => void;
 };
 
@@ -402,8 +400,6 @@ function ThemedContent({
   isSubmitting,
   turnstileToken,
   handleSubmit,
-  signature,
-  setSignature,
   errorMessage,
   entries,
   isLoading,
@@ -419,6 +415,8 @@ function ThemedContent({
   reflectionOpen,
   reflectionText,
   reflectionSignature,
+  setReflectionSignature,
+  pendingEntryId,
   onCloseReflection,
 }: ThemedContentProps) {
   const [showHint, setShowHint] = useState(false);
@@ -618,16 +616,17 @@ function ThemedContent({
         <div className="pt-2 sm:pt-0">
           <InputBox
             value={text}
-            signature={signature}
             maxLength={MAX_LENGTH}
             isSubmitting={isSubmitting}
             turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
             hasTurnstileToken={Boolean(turnstileToken)}
             onChange={setText}
-            onSignatureChange={setSignature}
             onSubmit={handleSubmit}
             onFocusChange={setIsWritingFocused}
             deferPostSubmitToParent
+            chromeSuppressed={
+              openPanel !== null || reflectionOpen || isPurposeOpen
+            }
           />
         </div>
         {errorMessage ? (
@@ -658,6 +657,8 @@ function ThemedContent({
         <ReflectionShareCard
           traceText={reflectionText}
           signature={reflectionSignature}
+          onSignatureChange={setReflectionSignature}
+          entryId={pendingEntryId}
           onClose={onCloseReflection}
         />
       ) : null}
