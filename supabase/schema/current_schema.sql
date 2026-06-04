@@ -8,10 +8,15 @@ create table if not exists public.entries (
   created_at timestamptz not null default now(),
   stars integer not null default 0,
   signature text null,
+  tone text null,
   constraint entries_pkey primary key (id),
   constraint entries_text_length_check check (char_length(text::text) >= 1 and char_length(text::text) <= 175),
   constraint entries_stars_nonnegative check (stars >= 0),
-  constraint entries_signature_max_len check (signature is null or char_length(signature) <= 30)
+  constraint entries_signature_max_len check (signature is null or char_length(signature) <= 30),
+  constraint entries_tone_check check (
+    tone is null
+    or tone in ('love', 'courage', 'regret', 'work', 'loss', 'gratitude', 'other')
+  )
 );
 
 create table if not exists public.entry_stars (

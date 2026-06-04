@@ -1,17 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FeaturedTraces } from "@/components/FeaturedTraces";
 import { Hero } from "@/components/Hero";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
 import { PurposeModal } from "@/components/ui/PurposeModal";
 import { ReflectionShareCard } from "@/components/ui/ReflectionShareCard";
 import { StarredPanel } from "@/components/panels/StarredPanel";
+import { SavedTraceToast } from "@/components/ui/SavedTraceToast";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import {
+  FirstVisitNudge,
+  isLiveNudgeComplete,
+  markLiveNudgeComplete,
+} from "@/components/triggers/FirstVisitNudge";
 import { LiveTrigger } from "@/components/triggers/LiveTrigger";
+import { MobileTraceNav } from "@/components/triggers/MobileTraceNav";
 import { StarredTrigger } from "@/components/triggers/StarredTrigger";
 import { useLiveTraces } from "@/hooks/useLiveTraces";
 import { useTypingState } from "@/hooks/useTypingState";
+import { normalizeEntryRow } from "@/lib/normalizeEntry";
 import {
   buildSavedTraceFromEntry,
   getSavedTraces,
@@ -20,6 +29,7 @@ import {
   writeStoredSavedTraces,
   type SavedTrace,
 } from "@/lib/savedTraces";
+import type { ToneValue } from "@/lib/tones";
 import type {
   Entry,
   LoadingEntryMap,
@@ -47,6 +57,7 @@ declare global {
 
 export default function Home() {
   const [text, setText] = useState("");
+  const [tone, setTone] = useState<ToneValue | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,6 +74,9 @@ export default function Home() {
   const [reflectionOpen, setReflectionOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState("");
   const [reflectionSignature, setReflectionSignature] = useState("");
+  const [reflectionTone, setReflectionTone] = useState<ToneValue | null>(null);
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  const saveToastShownRef = useRef(false);
   const isTyping = useTypingState(text, { idleDelayMs: 2600 });
 
   const fetchEntries = useCallback(async () => {
@@ -80,11 +94,7 @@ export default function Home() {
       return;
     }
 
-    const normalizedEntries = (payload.entries ?? []).map((entry) => ({
-      ...entry,
-      stars: typeof entry.stars === "number" ? entry.stars : 0,
-      signature: typeof entry.signature === "string" ? entry.signature : null,
-    }));
+    const normalizedEntries = (payload.entries ?? []).map((entry) => normalizeEntryRow(entry));
     setEntries(normalizedEntries);
     setInitialNextCursor(payload.nextCursor ?? null);
     setErrorMessage(null);
@@ -94,10 +104,20 @@ export default function Home() {
     setReflectionOpen(false);
     setPendingEntryId(null);
     setReflectionSignature("");
+    setReflectionTone(null);
     void fetchEntries();
     window.requestAnimationFrame(() => {
       document.getElementById("entry-text")?.focus({ preventScroll: true });
     });
+  }, [fetchEntries]);
+
+  const openLiveTracesAfterSubmit = useCallback(() => {
+    setReflectionOpen(false);
+    setPendingEntryId(null);
+    setReflectionSignature("");
+    setReflectionTone(null);
+    void fetchEntries();
+    setOpenPanel("live");
   }, [fetchEntries]);
 
   useEffect(() => {
@@ -185,6 +205,7 @@ export default function Home() {
           text: trimmedText,
           website,
           turnstileToken,
+          ...(tone ? { tone } : {}),
         }),
       });
       const payload = (await response.json()) as { error?: string; id?: string };
@@ -196,9 +217,11 @@ export default function Home() {
 
       setReflectionText(trimmedText);
       setReflectionSignature("");
+      setReflectionTone(tone);
       setPendingEntryId(typeof payload.id === "string" ? payload.id : null);
       setReflectionOpen(true);
       setText("");
+      setTone(null);
       setTurnstileToken("");
       await fetchEntries();
       return true;
@@ -235,6 +258,10 @@ export default function Home() {
         return sortSavedTracesBySavedAt(next);
       });
     } else {
+      if (!saveToastShownRef.current) {
+        saveToastShownRef.current = true;
+        setShowSaveToast(true);
+      }
       const baseEntry =
         options?.sourceEntry ?? entries.find((entry) => entry.id === entryId);
       if (baseEntry) {
@@ -360,9 +387,15 @@ export default function Home() {
         reflectionOpen={reflectionOpen}
         reflectionText={reflectionText}
         reflectionSignature={reflectionSignature}
+        reflectionTone={reflectionTone}
         setReflectionSignature={setReflectionSignature}
+        tone={tone}
+        onToneChange={setTone}
         pendingEntryId={pendingEntryId}
         onCloseReflection={closeReflection}
+        onReadLiveTracesAfterSubmit={openLiveTracesAfterSubmit}
+        showSaveToast={showSaveToast}
+        onHideSaveToast={() => setShowSaveToast(false)}
       />
     </ThemeProvider>
   );
@@ -389,9 +422,15 @@ type ThemedContentProps = {
   reflectionOpen: boolean;
   reflectionText: string;
   reflectionSignature: string;
+  reflectionTone: ToneValue | null;
   setReflectionSignature: (value: string) => void;
+  tone: ToneValue | null;
+  onToneChange: (value: ToneValue | null) => void;
   pendingEntryId: string | null;
   onCloseReflection: () => void;
+  onReadLiveTracesAfterSubmit: () => void;
+  showSaveToast: boolean;
+  onHideSaveToast: () => void;
 };
 
 function ThemedContent({
@@ -415,27 +454,64 @@ function ThemedContent({
   reflectionOpen,
   reflectionText,
   reflectionSignature,
+  reflectionTone,
   setReflectionSignature,
+  tone,
+  onToneChange,
   pendingEntryId,
   onCloseReflection,
+  onReadLiveTracesAfterSubmit,
+  showSaveToast,
+  onHideSaveToast,
 }: ThemedContentProps) {
   const [showHint, setShowHint] = useState(false);
+  const [showLiveNudge, setShowLiveNudge] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isWritingFocused, setIsWritingFocused] = useState(false);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const [olderEntries, setOlderEntries] = useState<Entry[]>([]);
   const [nextCursor, setNextCursor] = useState<EntriesCursor | null>(null);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
-  const { liveEntries, newlyAddedIds } = useLiveTraces({
-    initialEntries: entries,
-    paused: isTyping,
-    limit: RECENT_LIVE_LIMIT,
-  });
+  const { liveEntries, newlyAddedIds, newSinceLoadCount, resetNewSinceLoadCount } =
+    useLiveTraces({
+      initialEntries: entries,
+      paused: isTyping,
+      limit: RECENT_LIVE_LIMIT,
+    });
   const recentEntries = liveEntries;
 
-  const hasUnreadLiveEntries = openPanel !== "live" && newlyAddedIds.length > 0;
   const hasStartedThought = text.trim().length > 0;
   const isFocusModeActive = isTyping || (isWritingFocused && text.trim().length > 0);
+  const liveBadgeCount = openPanel === "live" ? 0 : newSinceLoadCount;
+
+  const toggleLivePanel = useCallback(() => {
+    if (openPanel !== "live") {
+      markLiveNudgeComplete();
+      setShowLiveNudge(false);
+    }
+    setOpenPanel(openPanel === "live" ? null : "live");
+  }, [openPanel, setOpenPanel]);
+
+  const toggleSavedPanel = useCallback(() => {
+    setOpenPanel(openPanel === "starred" ? null : "starred");
+  }, [openPanel, setOpenPanel]);
+
+  useEffect(() => {
+    if (openPanel === "live") {
+      resetNewSinceLoadCount();
+      markLiveNudgeComplete();
+      setShowLiveNudge(false);
+    }
+  }, [openPanel, resetNewSinceLoadCount]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setShowLiveNudge(!isLiveNudgeComplete());
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -508,11 +584,7 @@ function ThemedContent({
         throw new Error(payload.error ?? "Failed to load older traces.");
       }
 
-      const normalized = (payload.entries ?? []).map((entry) => ({
-        ...entry,
-        stars: typeof entry.stars === "number" ? entry.stars : 0,
-        signature: typeof entry.signature === "string" ? entry.signature : null,
-      }));
+      const normalized = (payload.entries ?? []).map((entry) => normalizeEntryRow(entry));
 
       setOlderEntries((previous) => {
         const recentIds = new Set(recentEntries.map((entry) => entry.id));
@@ -532,7 +604,7 @@ function ThemedContent({
   }, [isLoadingOlder, nextCursor, recentEntries, setErrorMessage]);
 
   return (
-    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
+    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(6.25rem,calc(5rem+env(safe-area-inset-bottom,0px)))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
@@ -561,19 +633,27 @@ function ThemedContent({
       >
         <LiveTrigger
           isOpen={openPanel === "live"}
-          hasUnread={hasUnreadLiveEntries}
+          newTraceCount={liveBadgeCount}
           isHushed={hasStartedThought}
-          onToggle={() =>
-            setOpenPanel(openPanel === "live" ? null : "live")
-          }
+          highlighted={showLiveNudge && openPanel !== "live"}
+          onToggle={toggleLivePanel}
         />
         <StarredTrigger
           isOpen={openPanel === "starred"}
           isHushed={hasStartedThought}
-          onToggle={() =>
-            setOpenPanel(openPanel === "starred" ? null : "starred")
-          }
+          onToggle={toggleSavedPanel}
         />
+        <FirstVisitNudge
+          visible={showLiveNudge && openPanel !== "live"}
+          onDismiss={() => setShowLiveNudge(false)}
+        />
+        <MobileTraceNav
+          openPanel={openPanel}
+          liveBadgeCount={liveBadgeCount}
+          onOpenLive={toggleLivePanel}
+          onOpenSaved={toggleSavedPanel}
+        />
+        <SavedTraceToast visible={showSaveToast} onHide={onHideSaveToast} />
         <LivePanel
           isOpen={openPanel === "live"}
           onClose={() => setOpenPanel(null)}
@@ -623,12 +703,15 @@ function ThemedContent({
             onChange={setText}
             onSubmit={handleSubmit}
             onFocusChange={setIsWritingFocused}
+            tone={tone}
+            onToneChange={onToneChange}
             deferPostSubmitToParent
             chromeSuppressed={
               openPanel !== null || reflectionOpen || isPurposeOpen
             }
           />
         </div>
+        <FeaturedTraces subdued={hasStartedThought || isFocusModeActive} />
         {errorMessage ? (
           <p
             className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
@@ -657,9 +740,11 @@ function ThemedContent({
         <ReflectionShareCard
           traceText={reflectionText}
           signature={reflectionSignature}
+          tone={reflectionTone}
           onSignatureChange={setReflectionSignature}
           entryId={pendingEntryId}
           onClose={onCloseReflection}
+          onReadLiveTraces={onReadLiveTracesAfterSubmit}
         />
       ) : null}
     </main>

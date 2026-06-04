@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
+import { ToneBadge } from "@/components/ToneBadge";
+import { ToneFilter } from "@/components/ToneFilter";
+import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
 import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
+import {
+  entryMatchesToneFilter,
+  TONE_FILTER_ALL,
+  type ToneFilterValue,
+} from "@/lib/tones";
 import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
 type LivePanelProps = {
@@ -52,6 +60,23 @@ export function LivePanel({
   starredEntryIds,
 }: LivePanelProps) {
   const [hasMounted, setHasMounted] = useState(false);
+  const [toneFilter, setToneFilter] = useState<ToneFilterValue>(TONE_FILTER_ALL);
+
+  const filteredEntries = useMemo(
+    () => entries.filter((entry) => entryMatchesToneFilter(entry, toneFilter)),
+    [entries, toneFilter],
+  );
+  const filteredOlderEntries = useMemo(
+    () => olderEntries.filter((entry) => entryMatchesToneFilter(entry, toneFilter)),
+    [olderEntries, toneFilter],
+  );
+  const hasUnfilteredEntries = entries.length > 0 || olderEntries.length > 0;
+  const showToneEmptyState =
+    !isLoading &&
+    toneFilter !== TONE_FILTER_ALL &&
+    hasUnfilteredEntries &&
+    filteredEntries.length === 0 &&
+    filteredOlderEntries.length === 0;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -70,13 +95,20 @@ export function LivePanel({
         }`}
       >
         <div className="pointer-events-none sticky top-0 z-10 h-4 bg-linear-to-b from-[#f8f5f0] to-transparent sm:h-6" />
+        <div className="px-1 pb-3">
+          <ToneFilter value={toneFilter} onChange={setToneFilter} />
+        </div>
         {isLoading ? (
           <p className="px-2 py-4 text-sm text-(--theme-muted)">
             Loading traces...
           </p>
+        ) : showToneEmptyState ? (
+          <p className="px-2 py-4 text-sm text-(--theme-muted)/75">
+            No traces in this tone yet.
+          </p>
         ) : (
           <ul className="space-y-5 pb-5 sm:space-y-6 sm:pb-6">
-            {entries.map((entry) => {
+            {filteredEntries.map((entry) => {
               const isNew = newlyAddedIds.includes(entry.id);
               const isStarring = Boolean(starringEntryIds[entry.id]);
               const isStarred = starredEntryIds.includes(entry.id);
@@ -90,30 +122,43 @@ export function LivePanel({
                   <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/65">
                     <span
                       suppressHydrationWarning
-                      className="inline-flex items-center gap-2"
+                      className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
                       title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}
                     >
-                      <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/45" />
-                      <span className="whitespace-nowrap">
-                        {formatRelativeTime(entry.created_at, hasMounted)}
+                      <span className="inline-flex items-center gap-2">
+                        <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/45" />
+                        <span className="whitespace-nowrap">
+                          {formatRelativeTime(entry.created_at, hasMounted)}
+                        </span>
                       </span>
+                      <ToneBadge tone={entry.tone} />
                     </span>
-                    <button
-                      type="button"
-                      disabled={isStarring}
-                      onClick={() => void onStar(entry.id, { sourceEntry: entry })}
-                      title={
-                        isStarred
-                          ? "Remove star"
-                          : isStarring
-                            ? "Saving star..."
-                            : "Add star"
-                      }
-                      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 active:scale-95 disabled:opacity-45"
-                    >
-                      <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
-                      <span className="tabular-nums">{entry.stars}</span>
-                    </button>
+                    <div className="flex items-center gap-0.5">
+                      <CopyTraceLinkButton entryId={entry.id} />
+                      <button
+                        type="button"
+                        disabled={isStarring}
+                        onClick={() => void onStar(entry.id, { sourceEntry: entry })}
+                        aria-label={
+                          isStarred
+                            ? "Remove saved trace"
+                            : isStarring
+                              ? "Saving star"
+                              : "Save trace"
+                        }
+                        title={
+                          isStarred
+                            ? "Remove star"
+                            : isStarring
+                              ? "Saving star..."
+                              : "Add star"
+                        }
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) active:scale-95 disabled:opacity-45"
+                      >
+                        <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
+                        <span className="tabular-nums">{entry.stars}</span>
+                      </button>
+                    </div>
                   </div>
                   <p className="font-serif text-[1.03rem] leading-7 text-(--theme-text) sm:text-lg sm:leading-8">
                     {entry.text}
@@ -129,7 +174,7 @@ export function LivePanel({
             })}
           </ul>
         )}
-        {!isLoading && (olderEntries.length > 0 || hasMoreOlderEntries) ? (
+        {!isLoading && (filteredOlderEntries.length > 0 || hasMoreOlderEntries) ? (
           <section className="mt-2 border-t border-(--theme-border)/20 pt-3">
             <div className="flex items-center justify-end">
               {hasMoreOlderEntries ? (
@@ -143,9 +188,9 @@ export function LivePanel({
                 </button>
               ) : null}
             </div>
-            {olderEntries.length > 0 ? (
+            {filteredOlderEntries.length > 0 ? (
               <ul className="mt-3 space-y-5 pb-3 sm:space-y-6">
-                {olderEntries.map((entry) => {
+                {filteredOlderEntries.map((entry) => {
                   const isStarring = Boolean(starringEntryIds[entry.id]);
                   const isStarred = starredEntryIds.includes(entry.id);
                   return (
@@ -156,30 +201,43 @@ export function LivePanel({
                       <div className="mb-2 flex items-center justify-between gap-2 text-xs text-(--theme-muted)/60">
                         <span
                           suppressHydrationWarning
-                          className="inline-flex items-center gap-2"
+                          className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
                           title={`Created at ${new Date(entry.created_at).toLocaleString("en-US")}`}
                         >
-                          <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/40" />
-                          <span className="whitespace-nowrap">
-                            {formatRelativeTime(entry.created_at, hasMounted)}
+                          <span className="inline-flex items-center gap-2">
+                            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/40" />
+                            <span className="whitespace-nowrap">
+                              {formatRelativeTime(entry.created_at, hasMounted)}
+                            </span>
                           </span>
+                          <ToneBadge tone={entry.tone} />
                         </span>
-                        <button
-                          type="button"
-                          disabled={isStarring}
-                          onClick={() => void onStar(entry.id, { sourceEntry: entry })}
-                          title={
-                            isStarred
-                              ? "Remove star"
-                              : isStarring
-                                ? "Saving star..."
-                                : "Add star"
-                          }
-                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 active:scale-95 disabled:opacity-45"
-                        >
-                          <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
-                          <span className="tabular-nums">{entry.stars}</span>
-                        </button>
+                        <div className="flex items-center gap-0.5">
+                          <CopyTraceLinkButton entryId={entry.id} />
+                          <button
+                            type="button"
+                            disabled={isStarring}
+                            onClick={() => void onStar(entry.id, { sourceEntry: entry })}
+                            aria-label={
+                              isStarred
+                                ? "Remove saved trace"
+                                : isStarring
+                                  ? "Saving star"
+                                  : "Save trace"
+                            }
+                            title={
+                              isStarred
+                                ? "Remove star"
+                                : isStarring
+                                  ? "Saving star..."
+                                  : "Add star"
+                            }
+                            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-1.5 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) active:scale-95 disabled:opacity-45"
+                          >
+                            <span aria-hidden="true">{isStarred ? "★" : "☆"}</span>
+                            <span className="tabular-nums">{entry.stars}</span>
+                          </button>
+                        </div>
                       </div>
                       <p className="font-serif text-[1.03rem] leading-7 text-(--theme-text) sm:text-lg sm:leading-8">
                         {entry.text}

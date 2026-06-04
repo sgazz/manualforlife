@@ -158,6 +158,25 @@ textarea {
   max-width: 65ch;
 }
 
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:animate-\[livePulse_2\.4s_ease-in-out_infinite\] {
+    animation: none !important;
+    opacity: 0.72;
+  }
+}
+
 @keyframes liveEntryIn {
   from {
     opacity: 0;

@@ -24,12 +24,14 @@ type RotatingPromptProps = {
   prompts: string[];
   paused?: boolean;
   className?: string;
+  as?: "p" | "span";
 };
 
 export function RotatingPrompt({
   prompts,
   paused = false,
   className = "",
+  as = "p",
 }: RotatingPromptProps) {
   const safePrompts = useMemo(
     () => (prompts.length > 0 ? prompts : ["Write your trace..."]),
@@ -131,8 +133,9 @@ export function RotatingPrompt({
   const displayedVisible = shouldForceVisible ? true : visible;
   const dynamicDuration = reducedMotion ? 0 : transitionMs;
 
+  const Tag = as;
   return (
-    <p
+    <Tag
       aria-hidden="true"
       className={`typography-ui px-2 text-(--theme-muted)/70 transition-opacity ease-in-out motion-reduce:transition-none ${
         displayedVisible ? "opacity-100" : "opacity-0"
@@ -143,6 +146,6 @@ export function RotatingPrompt({
       }}
     >
       {safePrompts[displayedIndex]}
-    </p>
+    </Tag>
   );
 }

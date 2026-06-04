@@ -7,9 +7,12 @@ import {
   type FormEvent,
 } from "react";
 import Script from "next/script";
+import { InspirationHint } from "@/components/InspirationHint";
 import { RotatingPrompt } from "@/components/RotatingPrompt";
+import { ToneSelector } from "@/components/ToneSelector";
 import { CustomCaret } from "@/components/ui/CustomCaret";
 import { useFocusState } from "@/hooks/useFocusState";
+import type { ToneValue } from "@/lib/tones";
 
 type InputBoxProps = {
   value: string;
@@ -24,6 +27,8 @@ type InputBoxProps = {
   deferPostSubmitToParent?: boolean;
   /** Hides the desktop trace invitation caret (e.g. while panels or modals are open). */
   chromeSuppressed?: boolean;
+  tone?: ToneValue | null;
+  onToneChange?: (value: ToneValue | null) => void;
 };
 
 const SUBMIT_DELAY_MS = 240;
@@ -58,6 +63,8 @@ export function InputBox({
   onFocusChange,
   deferPostSubmitToParent = false,
   chromeSuppressed = false,
+  tone = null,
+  onToneChange,
 }: InputBoxProps) {
   const { isFocused, onFocus, onBlur } = useFocusState();
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
@@ -310,7 +317,7 @@ export function InputBox({
               }}
               maxLength={maxLength}
               rows={1}
-              className="typography-ui relative z-0 w-full scroll-mt-24 resize-none overflow-y-auto overflow-x-hidden rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-[box-shadow] duration-300 focus:ring-0 motion-reduce:transition-none sm:px-6 sm:py-5 sm:text-lg sm:leading-8"
+              className="typography-ui relative z-0 w-full scroll-mt-24 resize-none overflow-y-auto overflow-x-hidden rounded-xl border-b px-4 py-4 text-base leading-7 text-(--theme-text) outline-none transition-shadow duration-300 focus:ring-0 motion-reduce:transition-none sm:px-6 sm:py-5 sm:text-lg sm:leading-8"
               style={{
                 borderColor: "color-mix(in srgb, var(--theme-border) 55%, transparent)",
                 backgroundColor: "color-mix(in srgb, var(--theme-surface) 96%, white 4%)",
@@ -323,27 +330,19 @@ export function InputBox({
             <CustomCaret
               variant="invite"
               visible={showTraceInviteCaret}
-              className="top-[1.875rem] left-4 -translate-y-1/2 sm:top-[2.25rem] sm:left-6"
+              className="top-7.5 left-4 -translate-y-1/2 sm:top-9 sm:left-6"
             />
           </div>
         </div>
 
+        {onToneChange ? (
+          <ToneSelector value={tone} onChange={onToneChange} subdued={hasText || isFocused} />
+        ) : null}
+
+        <InspirationHint paused={hasText || isFocused} />
         <p className="typography-hint text-(--theme-muted)/75">
           Keep it simple. One idea is enough.
         </p>
-
-        {value.trim().length > 0 ? (
-          <blockquote
-            className="rounded-xl border px-4 py-3 text-center italic transition-opacity duration-300 motion-reduce:transition-none"
-            style={{
-              borderColor: "color-mix(in srgb, var(--theme-border) 75%, transparent)",
-              backgroundColor: "color-mix(in srgb, var(--theme-surface) 90%, white 10%)",
-              color: "color-mix(in srgb, var(--theme-text) 90%, var(--theme-muted) 10%)",
-            }}
-          >
-            <p>&ldquo;{value.trim()}&rdquo;</p>
-          </blockquote>
-        ) : null}
 
         {turnstileSiteKey ? (
           <>

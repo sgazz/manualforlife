@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Caveat, Cormorant_Garamond, Inter } from "next/font/google";
+import { CanonicalHostRedirect } from "@/components/CanonicalHostRedirect";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,25 +25,7 @@ const caveat = Caveat({
 });
 
 const appSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://manualfor.life";
-
-/**
- * Favicon files live on this Next deployment, while metadataBase stays on the
- * marketing domain for OG/Twitter. Relative icon URLs would otherwise resolve
- * against metadataBase and load from manualfor.life (stale / wrong tree).
- */
-function iconAssetOrigin(): string {
-  if (typeof process.env.VERCEL_URL === "string" && process.env.VERCEL_URL.length > 0) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  if (process.env.NODE_ENV === "development") {
-    return `http://localhost:${process.env.PORT ?? "3000"}`;
-  }
-  return "https://app.manualfor.life";
-}
-
-const iconOnDeployment = (path: string) =>
-  new URL(path, iconAssetOrigin());
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://app.manualfor.life";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -94,31 +77,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: iconOnDeployment("/favicon.ico?v=3"), sizes: "any" },
-      {
-        url: iconOnDeployment("/brand/favicon-32x32.png?v=3"),
-        type: "image/png",
-        sizes: "32x32",
-      },
-      {
-        url: iconOnDeployment("/brand/favicon-16x16.png?v=3"),
-        type: "image/png",
-        sizes: "16x16",
-      },
-      {
-        url: iconOnDeployment("/brand/icon-192.png?v=3"),
-        type: "image/png",
-        sizes: "192x192",
-      },
-      {
-        url: iconOnDeployment("/brand/icon-512.png?v=3"),
-        type: "image/png",
-        sizes: "512x512",
-      },
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/brand/favicon-32x32.png?v=3", type: "image/png", sizes: "32x32" },
+      { url: "/brand/favicon-16x16.png?v=3", type: "image/png", sizes: "16x16" },
+      { url: "/brand/icon-192.png?v=3", type: "image/png", sizes: "192x192" },
+      { url: "/brand/icon-512.png?v=3", type: "image/png", sizes: "512x512" },
     ],
-    apple: [
-      { url: iconOnDeployment("/brand/apple-touch-icon.png?v=3"), sizes: "180x180" },
-    ],
+    apple: [{ url: "/brand/apple-touch-icon.png?v=3", sizes: "180x180" }],
   },
 };
 
@@ -132,7 +97,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${cormorantGaramond.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <CanonicalHostRedirect />
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,66 +1,46 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { PostSubmitActions } from "@/components/PostSubmitActions";
+import { ShareTraceCard } from "@/components/trace/ShareTraceCard";
+import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
+import { CopyTraceTextButton } from "@/components/ui/CopyTraceTextButton";
+import { NativeShareButton } from "@/components/ui/NativeShareButton";
+import { buildTraceUrl } from "@/lib/site";
+import type { ToneValue } from "@/lib/tones";
 
-const SHARE_URL = "https://manualfor.life";
-const SHARE_TITLE = "Manualfor.life";
 const SIGNATURE_MAX_LENGTH = 30;
 
 type ReflectionShareCardProps = {
   traceText: string;
   signature: string;
+  tone?: ToneValue | null;
   onSignatureChange: (value: string) => void;
   entryId: string | null;
   onClose: () => void;
+  onReadLiveTraces?: () => void;
 };
-
-type ShareFeedback = "idle" | "copied" | "copy_failed";
-
-async function copyTraceForSharing(trimmedTrace: string, attribution: string | null) {
-  const body =
-    attribution && attribution.trim().length > 0
-      ? `${trimmedTrace}\n\n— ${attribution.trim()}\n\nmanualfor.life`
-      : `${trimmedTrace}\n\nmanualfor.life`;
-  await navigator.clipboard.writeText(body);
-}
 
 export function ReflectionShareCard({
   traceText,
   signature,
+  tone = null,
   onSignatureChange,
   entryId,
   onClose,
+  onReadLiveTraces,
 }: ReflectionShareCardProps) {
   const titleId = useId();
   const signatureInputRef = useRef<HTMLInputElement | null>(null);
   const handleDoneRef = useRef<() => Promise<void>>(async () => {});
   const [animateIn, setAnimateIn] = useState(false);
-  const [shareFeedback, setShareFeedback] = useState<ShareFeedback>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const feedbackClearRef = useRef<number | null>(null);
 
   const trimmedTraceText = traceText.trim();
   const trimmedSignature = signature.trim();
   const hasSignature = trimmedSignature.length > 0;
-
-  const clearFeedbackLater = useCallback(() => {
-    if (feedbackClearRef.current !== null) {
-      window.clearTimeout(feedbackClearRef.current);
-    }
-    feedbackClearRef.current = window.setTimeout(() => {
-      setShareFeedback("idle");
-      feedbackClearRef.current = null;
-    }, 3200);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (feedbackClearRef.current !== null) {
-        window.clearTimeout(feedbackClearRef.current);
-      }
-    };
-  }, []);
+  const traceShareUrl = entryId ? buildTraceUrl(entryId) : null;
 
   useEffect(() => {
     let inner = 0;
@@ -182,43 +162,6 @@ export function ReflectionShareCard({
     };
   }, []);
 
-  const handleShare = async () => {
-    if (!trimmedTraceText) {
-      return;
-    }
-
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try {
-        const shareText =
-          hasSignature && trimmedSignature
-            ? `${trimmedTraceText}\n\n— ${trimmedSignature}`
-            : trimmedTraceText;
-        await navigator.share({
-          title: SHARE_TITLE,
-          text: shareText,
-          url: SHARE_URL,
-        });
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    try {
-      await copyTraceForSharing(
-        trimmedTraceText,
-        hasSignature ? trimmedSignature : null,
-      );
-      setShareFeedback("copied");
-      clearFeedbackLater();
-    } catch {
-      setShareFeedback("copy_failed");
-      clearFeedbackLater();
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-48 pointer-events-auto opacity-100">
       <button
@@ -254,16 +197,14 @@ export function ReflectionShareCard({
               Saved for the future.
             </p>
 
-            <blockquote className="mt-6 border-none px-0 py-0 shadow-none">
-              <p className="font-serif text-[1.125rem] leading-[1.65] text-(--theme-text)/92 sm:text-[1.2rem] sm:leading-[1.7]">
-                &ldquo;{trimmedTraceText}&rdquo;
-              </p>
-              {hasSignature ? (
-                <footer className="typography-signature mt-4 text-sm text-(--theme-muted)/85">
-                  &mdash; {trimmedSignature}
-                </footer>
-              ) : null}
-            </blockquote>
+            <div className="mt-6">
+              <ShareTraceCard
+                text={trimmedTraceText}
+                signature={hasSignature ? trimmedSignature : null}
+                tone={tone}
+                variant="modal"
+              />
+            </div>
 
             <div className="mt-7 text-left sm:mt-8">
               <label
@@ -291,22 +232,25 @@ export function ReflectionShareCard({
               />
             </div>
 
-            <div className="mt-8 flex flex-col items-stretch gap-2.5 sm:mt-9">
-              <button
-                type="button"
-                onClick={() => void handleShare()}
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium transition-[opacity,transform] duration-200 hover:brightness-[1.03] motion-reduce:transition-none"
-                style={{
-                  backgroundColor:
-                    "color-mix(in srgb, var(--theme-accent) 86%, #f8ecdb 14%)",
-                  color:
-                    "color-mix(in srgb, var(--theme-accent-contrast) 90%, #fff5e8 10%)",
-                  boxShadow:
-                    "0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 60%, transparent) inset",
-                }}
-              >
-                Share
-              </button>
+            {onReadLiveTraces ? (
+              <PostSubmitActions onReadLiveTraces={onReadLiveTraces} />
+            ) : null}
+
+            <div className="mt-4 flex flex-col gap-2.5">
+              {entryId && traceShareUrl ? (
+                <CopyTraceLinkButton
+                  entryId={entryId}
+                  label="Copy link to your trace"
+                  variant="full"
+                />
+              ) : null}
+              <CopyTraceTextButton traceText={trimmedTraceText} variant="full" />
+              {entryId && traceShareUrl ? (
+                <NativeShareButton traceText={trimmedTraceText} entryId={entryId} />
+              ) : null}
+            </div>
+
+            <div className="mt-6 sm:mt-7">
               <button
                 type="button"
                 disabled={isSaving}
@@ -316,19 +260,6 @@ export function ReflectionShareCard({
                 {isSaving ? "Saving…" : "Done"}
               </button>
             </div>
-
-            <p
-              aria-live="polite"
-              className={`mt-4 min-h-5 text-center text-xs text-(--theme-muted)/70 transition-opacity duration-300 motion-reduce:transition-none ${
-                shareFeedback === "idle" ? "opacity-0" : "opacity-100"
-              }`}
-            >
-              {shareFeedback === "copied"
-                ? "Copied to share."
-                : shareFeedback === "copy_failed"
-                  ? "Couldn't copy automatically — select the quote above if you need it."
-                  : "\u00a0"}
-            </p>
 
             {saveError ? (
               <p

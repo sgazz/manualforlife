@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { normalizeTone } from "@/lib/tones";
 import type { Entry } from "@/types/ui";
 
 type UseLiveTracesOptions = {
@@ -13,6 +14,8 @@ type UseLiveTracesOptions = {
 type UseLiveTracesResult = {
   liveEntries: Entry[];
   newlyAddedIds: string[];
+  newSinceLoadCount: number;
+  resetNewSinceLoadCount: () => void;
   setLiveEntriesFromSource: (entries: Entry[]) => void;
 };
 
@@ -23,6 +26,7 @@ function normalizeEntry(input: Partial<Entry> & { id: string }): Entry {
     created_at: typeof input.created_at === "string" ? input.created_at : new Date().toISOString(),
     stars: typeof input.stars === "number" ? input.stars : 0,
     signature: typeof input.signature === "string" ? input.signature : null,
+    tone: normalizeTone(input.tone),
   };
 }
 
@@ -35,6 +39,7 @@ export function useLiveTraces({
     initialEntries.slice(0, limit),
   );
   const [newlyAddedIds, setNewlyAddedIds] = useState<string[]>([]);
+  const [newSinceLoadCount, setNewSinceLoadCount] = useState(0);
   const pausedRef = useRef(paused);
   const queuedEntriesRef = useRef<Entry[]>([]);
 
@@ -117,6 +122,7 @@ export function useLiveTraces({
           { event: "INSERT", schema: "public", table: "entries" },
           (payload) => {
             const nextEntry = normalizeEntry(payload.new as Entry);
+            setNewSinceLoadCount((previous) => previous + 1);
             if (pausedRef.current) {
               queuedEntriesRef.current = [
                 nextEntry,
@@ -166,6 +172,10 @@ export function useLiveTraces({
     };
   }, [limit]);
 
+  const resetNewSinceLoadCount = useCallback(() => {
+    setNewSinceLoadCount(0);
+  }, []);
+
   function setLiveEntriesFromSource(entries: Entry[]) {
     setLiveEntries(entries.slice(0, limit));
   }
@@ -173,6 +183,8 @@ export function useLiveTraces({
   return {
     liveEntries,
     newlyAddedIds,
+    newSinceLoadCount,
+    resetNewSinceLoadCount,
     setLiveEntriesFromSource,
   };
 }

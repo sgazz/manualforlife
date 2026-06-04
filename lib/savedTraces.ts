@@ -1,4 +1,5 @@
 import type { Entry } from "@/types/ui";
+import { normalizeTone, type ToneValue } from "@/lib/tones";
 
 export const SAVED_TRACES_STORAGE_KEY = "manualforlife:saved-traces";
 
@@ -9,6 +10,7 @@ export type SavedTrace = {
   created_at: string;
   stars: number;
   saved_at: string;
+  tone?: ToneValue | null;
 };
 
 function canUseStorage(): boolean {
@@ -27,7 +29,8 @@ function isValidSavedTrace(value: unknown): value is SavedTrace {
     typeof row.created_at === "string" &&
     typeof row.stars === "number" &&
     Number.isFinite(row.stars) &&
-    typeof row.saved_at === "string"
+    typeof row.saved_at === "string" &&
+    (row.tone === undefined || row.tone === null || typeof row.tone === "string")
   );
 }
 
@@ -127,6 +130,7 @@ export function buildSavedTraceFromEntry(entry: Entry, stars: number): SavedTrac
     created_at: entry.created_at,
     stars,
     saved_at: new Date().toISOString(),
+    tone: entry.tone,
   };
 }
 
@@ -137,5 +141,6 @@ export function savedTraceToEntry(saved: SavedTrace): Entry {
     signature: saved.signature,
     created_at: saved.created_at,
     stars: saved.stars,
+    tone: normalizeTone(saved.tone),
   };
 }

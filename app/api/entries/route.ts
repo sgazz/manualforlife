@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  ENTRY_LIST_COLUMNS,
+  ENTRY_LIST_COLUMNS_LEGACY,
+  isMissingToneColumnError,
+} from "@/lib/entryColumns";
+import { normalizeEntryRow } from "@/lib/normalizeEntry";
 import { supabaseServer } from "@/lib/supabaseServer";
 
 const DEFAULT_LIMIT = 12;
@@ -41,20 +47,27 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid beforeCreatedAt." }, { status: 400 });
   }
 
-  let query = supabaseServer
-    .from("entries")
-    .select("id, text, created_at, stars, signature")
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(limit + 1);
+  function buildListQuery(columns: string) {
+    let query = supabaseServer
+      .from("entries")
+      .select(columns)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(limit + 1);
 
-  if (hasBeforeCreatedAt && hasBeforeId) {
-    query = query.or(
-      `created_at.lt.${beforeCreatedAt!},and(created_at.eq.${beforeCreatedAt!},id.lt.${beforeId!})`,
-    );
+    if (hasBeforeCreatedAt && hasBeforeId) {
+      query = query.or(
+        `created_at.lt.${beforeCreatedAt!},and(created_at.eq.${beforeCreatedAt!},id.lt.${beforeId!})`,
+      );
+    }
+
+    return query;
   }
 
-  const { data, error } = await query;
+  let { data, error } = await buildListQuery(ENTRY_LIST_COLUMNS);
+  if (error && isMissingToneColumnError(error)) {
+    ({ data, error } = await buildListQuery(ENTRY_LIST_COLUMNS_LEGACY));
+  }
 
   if (error) {
     return NextResponse.json(
@@ -63,15 +76,12 @@ export async function GET(request: Request) {
     );
   }
 
-  const rows = data ?? [];
+  type EntryRow = Parameters<typeof normalizeEntryRow>[0];
+  const rows = (data ?? []) as unknown as EntryRow[];
   const hasMore = rows.length > limit;
   const pageRows = hasMore ? rows.slice(0, limit) : rows;
 
-  const normalizedEntries = pageRows.map((entry) => ({
-    ...entry,
-    stars: typeof entry.stars === "number" ? entry.stars : 0,
-    signature: typeof entry.signature === "string" ? entry.signature : null,
-  }));
+  const normalizedEntries = pageRows.map((entry) => normalizeEntryRow(entry));
 
   const nextCursor = hasMore && normalizedEntries.length > 0
     ? {

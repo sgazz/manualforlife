@@ -1,3 +1,4 @@
+import { SocialProofCounter } from "@/components/SocialProofCounter";
 import { Title } from "@/components/Title";
 
 export function Hero() {
@@ -36,6 +37,7 @@ export function Hero() {
         <span className="sm:hidden"> </span>
         Write yours &mdash; for someone you will never meet.
       </p>
+      <SocialProofCounter />
     </section>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "manualforlife.vercel.app" }],
+      "destination": "https://app.manualfor.life/:path*",
+      "permanent": true
+    }
+  ]
+}

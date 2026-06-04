@@ -142,8 +142,9 @@ export function PanelShell({
           <button
             type="button"
             onClick={onClose}
+            aria-label={`Close ${title} panel`}
             title="Close panel"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-base leading-none text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-base leading-none text-(--theme-muted)/65 transition-colors duration-300 ease-in-out hover:text-(--theme-muted) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) focus-visible:ring-offset-2"
           >
             ×
           </button>

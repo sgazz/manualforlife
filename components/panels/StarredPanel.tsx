@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
+import { ToneBadge } from "@/components/ToneBadge";
+import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
 import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
@@ -66,22 +68,31 @@ export function StarredPanel({
                 <div className="mt-3.5 flex items-center justify-between text-xs text-(--theme-muted)/55">
                   <span
                     suppressHydrationWarning
-                    className="inline-flex items-center gap-2"
+                    className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
                     title={new Date(entry.created_at).toLocaleString("en-US")}
                   >
-                    <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/40" />
-                    <span className="whitespace-nowrap">{formatDate(entry.created_at, hasMounted)}</span>
+                    <span className="inline-flex items-center gap-2">
+                      <span aria-hidden="true" className="h-1 w-1 rounded-full bg-(--theme-muted)/40" />
+                      <span className="whitespace-nowrap">{formatDate(entry.created_at, hasMounted)}</span>
+                    </span>
+                    <ToneBadge tone={entry.tone} />
                   </span>
-                  <button
-                    type="button"
-                    disabled={Boolean(starringEntryIds[entry.id])}
-                    onClick={() => void onStar(entry.id)}
-                    title={starringEntryIds[entry.id] ? "Saving star..." : "Remove star"}
-                    className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 text-xs text-(--theme-muted)/55 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)/80 disabled:opacity-45"
-                  >
-                    <span aria-hidden="true">★</span>
-                    <span className="tabular-nums">{entry.stars}</span>
-                  </button>
+                  <div className="flex items-center gap-0.5">
+                    <CopyTraceLinkButton entryId={entry.id} />
+                    <button
+                      type="button"
+                      disabled={Boolean(starringEntryIds[entry.id])}
+                      onClick={() => void onStar(entry.id)}
+                      aria-label={
+                        starringEntryIds[entry.id] ? "Saving star" : "Remove saved trace"
+                      }
+                      title={starringEntryIds[entry.id] ? "Saving star..." : "Remove star"}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 text-xs text-(--theme-muted)/55 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) disabled:opacity-45"
+                    >
+                      <span aria-hidden="true">★</span>
+                      <span className="tabular-nums">{entry.stars}</span>
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}

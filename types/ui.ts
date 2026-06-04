@@ -1,9 +1,12 @@
+import type { ToneValue } from "@/lib/tones";
+
 export type Entry = {
   id: string;
   text: string;
   created_at: string;
   stars: number;
   signature: string | null;
+  tone: ToneValue | null;
 };
 
 export type PanelType = "live" | "starred" | null;

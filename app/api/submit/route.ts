@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isMissingToneColumnError } from "@/lib/entryColumns";
+import { normalizeTone } from "@/lib/tones";
 import { logAbuseAttempt } from "@/lib/logger";
 import { getClientIdentifier } from "@/lib/requestIdentity";
 import {
@@ -18,6 +20,7 @@ type SubmitPayload = {
   website?: unknown;
   turnstileToken?: unknown;
   signature?: unknown;
+  tone?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -113,15 +116,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
-  const { data, error } = await supabaseServer
+  const tone = normalizeTone(payload.tone);
+
+  const insertPayload = {
+    text: validation.normalizedText,
+    stars: 0,
+    signature: normalizeSignature(payload.signature),
+    ...(tone ? { tone } : {}),
+  };
+
+  let { data, error } = await supabaseServer
     .from("entries")
-    .insert({
-      text: validation.normalizedText,
-      stars: 0,
-      signature: normalizeSignature(payload.signature),
-    })
+    .insert(insertPayload)
     .select("id")
     .maybeSingle();
+
+  if ((error || !data?.id) && tone && isMissingToneColumnError(error)) {
+    ({ data, error } = await supabaseServer
+      .from("entries")
+      .insert({
+        text: validation.normalizedText,
+        stars: 0,
+        signature: normalizeSignature(payload.signature),
+      })
+      .select("id")
+      .maybeSingle());
+  }
 
   if (error || !data?.id) {
     registerViolation(rateLimitKey);
