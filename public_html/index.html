@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function () {
+      var key = "manualforlife-theme";
+      var theme = "light";
+      try {
+        var stored = localStorage.getItem(key);
+        if (stored === "light" || stored === "dark") {
+          theme = stored;
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      } catch (e) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <script>
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    if (location.hash) {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manualfor.life — One thought worth keeping</title>
+  <meta name="description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
+  <link rel="canonical" href="https://manualfor.life/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://manualfor.life/" />
+  <meta property="og:title" content="Manualfor.life — One thought worth keeping" />
+  <meta property="og:description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
+  <meta property="og:image" content="https://manualfor.life/og/og-share.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Manualfor.life" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Manualfor.life — One thought worth keeping" />
+  <meta name="twitter:description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Manualfor.life",
+    "url": "https://manualfor.life/",
+    "description": "A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations."
+  }
+  </script>
+  <meta name="twitter:image" content="https://manualfor.life/og/og-share.png" />
+  <meta name="theme-color" content="#f8f5f0" />
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png?v=2" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=2" sizes="180x180" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Caveat:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/site.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a href="/" class="brand" aria-label="Manualfor.life home">
+        <span>Manualfor</span><span class="life">.life</span>
+      </a>
+      <nav class="site-nav" id="mobile-menu" aria-label="Primary navigation">
+        <a href="#why-it-exists">Why it exists</a>
+        <a href="https://app.manualfor.life">Read Traces</a>
+        <a href="https://app.manualfor.life" class="site-nav__leave">Leave a Trace</a>
+      </nav>
+      <div class="header-controls">
+        <button
+          type="button"
+          class="theme-toggle"
+          data-theme-toggle
+          aria-label="Switch to dark mode"
+        >
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="menu-toggle"
+          data-menu-toggle
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <svg class="menu-toggle__open" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg class="menu-toggle__close" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <button
+    type="button"
+    class="mobile-menu-backdrop"
+    data-menu-backdrop
+    aria-label="Close menu"
+    aria-hidden="true"
+    tabindex="-1"
+  ></button>
+
+  <main id="main-content">
+    <section class="hero" id="top">
+      <div class="container hero__inner">
+        <svg aria-hidden="true" viewBox="0 0 420 54" class="line-mark">
+          <path
+            d="M8 38
+               C 46 42, 82 16, 130 6
+               C 162 -2, 188 22, 170 34
+               C 158 42, 168 46, 188 40
+               C 208 34, 220 22, 240 22
+               C 264 22, 268 42, 250 44
+               C 236 46, 232 52, 258 50
+               C 292 48, 324 34, 356 30
+               C 376 28, 394 28, 412 30
+               C 408 30, 410 30, 412 30"
+            fill="none"
+            stroke="rgba(111, 103, 95, 0.88)"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <h1 class="hero-title">
+          <span>Manualfor</span><span class="life">.life</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          A place where people leave one thought that changed their life.
+        </p>
+
+        <p class="hero-support">
+          A quiet archive of lessons, regrets, courage, kindness, and change.
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a Trace</a>
+          <a href="https://app.manualfor.life" class="button button--ghost">Read Traces</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="why-it-exists" aria-labelledby="why-it-exists-title">
+      <div class="container">
+        <div class="section-card" style="text-align:center;">
+          <p class="section-label">Why it exists</p>
+          <h2 id="why-it-exists-title" class="section-title">Most lessons disappear.</h2>
+          <p class="section-copy">
+            We learn through time, loss, patience, mistakes, kindness, and change.
+            Then many of those lessons vanish with us.
+            <br><br>
+            Manualfor.life exists so one sentence can remain.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <p class="section-label" style="text-align:center;">The idea</p>
+        <h2 class="section-title" style="text-align:center;">A quiet archive for what matters.</h2>
+        <div class="idea-grid">
+          <article class="idea-card">
+            <h3>Wisdom belongs to everyone</h3>
+            <p>Not to experts only, but to anyone who has lived, learned, and understood something worth passing on.</p>
+          </article>
+          <article class="idea-card">
+            <h3>One sentence can change a life</h3>
+            <p>Sometimes the right words arrive at the right time and stay longer than anything else.</p>
+          </article>
+          <article class="idea-card">
+            <h3>Leave something for someone unseen</h3>
+            <p>Write for a stranger you will never meet, and for a future that has not arrived yet.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section featured-traces" id="featured-traces" aria-labelledby="featured-traces-title">
+      <div class="container">
+        <h2 id="featured-traces-title" class="section-title">A few Traces from the archive</h2>
+        <p class="section-subtitle">Thoughts left by strangers.</p>
+        <div class="examples">
+          <article class="trace-card" tabindex="0">
+            <blockquote>Most people aren&rsquo;t thinking about you nearly as much as you think.</blockquote>
+          </article>
+          <article class="trace-card" tabindex="0">
+            <blockquote>Call your parents more often.</blockquote>
+          </article>
+          <article class="trace-card" tabindex="0">
+            <blockquote>The fear lasts longer than the pain.</blockquote>
+          </article>
+        </div>
+        <div class="featured-traces__cta">
+          <a href="https://app.manualfor.life" class="button button--ghost">Read more in the archive</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section social-proof" id="archive-stats" aria-labelledby="social-proof-title">
+      <div class="container">
+        <h2 id="social-proof-title" class="section-title">Growing archive of human wisdom</h2>
+        <div class="social-proof__body" data-social-proof>
+          <p class="social-proof__fallback" data-social-fallback>
+            A growing archive of traces left by strangers.
+          </p>
+          <div class="stat-grid" data-stat-grid hidden>
+            <div class="stat">
+              <span class="stat__value" data-stat-value="traces" aria-label="Traces Preserved">0</span>
+              <span class="stat__label">Traces Preserved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta-block" id="leave">
+      <div class="container">
+        <p class="section-label">Leave Your Trace</p>
+        <h2 class="section-title">What would you leave behind?</h2>
+        <p class="section-copy">
+          One thought. One lesson. One truth worth keeping.
+        </p>
+        <div class="hero-actions" style="margin-top: 1.4rem;">
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a Trace</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="footer-brand-block">
+        <div class="footer-brand">Manualfor.life</div>
+        <div>For future generations.</div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/#why-it-exists">About</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="/privacy/">Privacy</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="/terms/">Terms</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="mailto:hello@manualfor.life">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/js/site.js"></script>
+  <script>
+    (function initScrollReset() {
+      function resetToTop() {
+        window.scrollTo(0, 0);
+      }
+
+      resetToTop();
+
+      window.addEventListener("pageshow", function (event) {
+        if (!event.persisted) {
+          resetToTop();
+        }
+      });
+    })();
+
+    (function initSocialProof() {
+      var COUNT_URL = "https://app.manualfor.life/api/entries/count";
+
+      var fallback = document.querySelector("[data-social-fallback]");
+      var grid = document.querySelector("[data-stat-grid]");
+      var tracesNode = document.querySelector('[data-stat-value="traces"]');
+      if (!fallback || !grid || !tracesNode) return;
+
+      function showFallback() {
+        fallback.hidden = false;
+        grid.hidden = true;
+      }
+
+      function showCount(count) {
+        tracesNode.textContent = count.toLocaleString("en-US");
+        fallback.hidden = true;
+        grid.hidden = false;
+      }
+
+      fetch(COUNT_URL, { method: "GET" })
+        .then(function (response) {
+          if (!response.ok) throw new Error("count unavailable");
+          return response.json();
+        })
+        .then(function (payload) {
+          var count = payload && payload.count;
+          if (typeof count !== "number" || !Number.isFinite(count) || count <= 0) {
+            showFallback();
+            return;
+          }
+          showCount(count);
+        })
+        .catch(function () {
+          showFallback();
+        });
+    })();
+  </script>
+</body>
+</html>

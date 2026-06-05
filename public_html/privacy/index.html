@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    (function () {
+      var key = "manualforlife-theme";
+      var theme = "light";
+      try {
+        var stored = localStorage.getItem(key);
+        if (stored === "light" || stored === "dark") {
+          theme = stored;
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      } catch (e) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Manualfor.life</title>
+  <meta name="description" content="How Manualfor.life handles data, public traces, and trust. We collect as little as possible." />
+  <link rel="canonical" href="https://manualfor.life/privacy/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://manualfor.life/privacy/" />
+  <meta property="og:title" content="Privacy Policy — Manualfor.life" />
+  <meta property="og:description" content="Manualfor.life is a quiet public archive. We collect as little as possible." />
+  <meta property="og:image" content="https://manualfor.life/og/og-share.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Manualfor.life" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Privacy Policy — Manualfor.life" />
+  <meta name="twitter:description" content="Manualfor.life is a quiet public archive. We collect as little as possible." />
+  <meta name="twitter:image" content="https://manualfor.life/og/og-share.png" />
+  <meta name="theme-color" content="#f8f5f0" />
+  <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png?v=2" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=2" sizes="180x180" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Caveat:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/site.css" />
+  <link rel="stylesheet" href="/css/legal.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a href="/" class="brand" aria-label="Manualfor.life home">
+        <span>Manualfor</span><span class="life">.life</span>
+      </a>
+      <nav class="site-nav" id="mobile-menu" aria-label="Primary navigation">
+        <a href="/#why-it-exists">Why it exists</a>
+        <a href="https://app.manualfor.life">Read Traces</a>
+        <a href="https://app.manualfor.life" class="site-nav__leave">Leave a Trace</a>
+      </nav>
+      <div class="header-controls">
+        <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode">
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+        <button type="button" class="menu-toggle" data-menu-toggle aria-controls="mobile-menu" aria-expanded="false" aria-label="Open menu">
+          <svg class="menu-toggle__open" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg class="menu-toggle__close" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <button type="button" class="mobile-menu-backdrop" data-menu-backdrop aria-label="Close menu" aria-hidden="true" tabindex="-1"></button>
+
+  <main id="main-content" class="legal-page">
+    <div class="container">
+      <header class="legal-hero">
+        <h1 class="legal-hero__title">Privacy Policy</h1>
+        <p class="legal-hero__subtitle">Manualfor.life is a quiet public archive. We collect as little as possible.</p>
+        <p class="legal-hero__updated">Last updated: June 2026</p>
+      </header>
+
+      <div class="legal-content">
+        <section class="legal-section" aria-labelledby="privacy-1">
+          <h2 id="privacy-1">What Manualfor.life is</h2>
+          <p>
+            Manualfor.life is a public archive where people leave one short thought — a lesson, regret, courage, kindness, or change — for others to read. The writing happens at <a href="https://app.manualfor.life">app.manualfor.life</a>. This site explains the project and links you there.
+          </p>
+          <p>
+            Because traces are meant to be preserved and shared, we treat the archive as public by design — not as a private journal.
+          </p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-2">
+          <h2 id="privacy-2">What we collect</h2>
+          <p>We keep only what is needed to run the archive:</p>
+          <ul>
+            <li><strong>Trace text</strong> — the words you choose to submit through the app.</li>
+            <li><strong>Technical data</strong> — information our hosting and infrastructure need to deliver the site, prevent abuse, and keep the service running (for example, IP address, browser type, request logs, and error reports).</li>
+            <li><strong>Email, if you contact us</strong> — if you write to <a href="mailto:hello@manualfor.life">hello@manualfor.life</a>, we receive your message and email address so we can reply.</li>
+          </ul>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-3">
+          <h2 id="privacy-3">What we do not collect</h2>
+          <p>We do not ask you to create an account, build a profile, or hand over a long list of personal details to leave a Trace.</p>
+          <p>We do not intentionally collect sensitive personal data through the submission form. We do not sell personal data. The archive is not built for advertising profiles or data brokerage.</p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-4">
+          <h2 id="privacy-4">Public traces</h2>
+          <p>
+            Traces you submit may be visible to anyone who visits the archive. They may appear in lists, featured sections, search, or shared links. Others may save, copy, or share a Trace outside Manualfor.life.
+          </p>
+          <p>
+            Please do not submit private information you would not want the public to see — names, addresses, phone numbers, medical details, financial information, or anything that could identify you or someone else without their consent.
+          </p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-5">
+          <h2 id="privacy-5">Cookies and analytics</h2>
+          <p>
+            This landing site may store your theme preference (light or dark) in your browser&rsquo;s local storage so your choice is remembered when you return.
+          </p>
+          <p>
+            We may use basic, privacy-respecting analytics or essential technical cookies to understand how the site is used and to keep it reliable. We do not use traces for advertising targeting.
+          </p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-6">
+          <h2 id="privacy-6">Third-party services</h2>
+          <p>
+            Manualfor.life runs on infrastructure provided by third parties — including hosting and database/backend services — that process technical data on our behalf so the site can operate securely.
+          </p>
+          <p>
+            Those providers handle data according to their own policies and our agreements with them. We choose services that fit a small, public archive — not a data-harvesting platform.
+          </p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-7">
+          <h2 id="privacy-7">Data removal</h2>
+          <p>
+            If you submitted a Trace and want it removed, email us at <a href="mailto:hello@manualfor.life">hello@manualfor.life</a> with enough detail for us to find it (for example, the Trace text or link). We will review reasonable removal requests in good faith.
+          </p>
+          <p>
+            Because the project is a public archive, removal may take time, and copies shared elsewhere may remain outside our control.
+          </p>
+        </section>
+
+        <section class="legal-section" aria-labelledby="privacy-8">
+          <h2 id="privacy-8">Contact</h2>
+          <p>
+            Questions about this policy or how we handle data:
+            <a href="mailto:hello@manualfor.life">hello@manualfor.life</a>
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="footer-brand-block">
+        <div class="footer-brand">Manualfor.life</div>
+        <div>For future generations.</div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/#why-it-exists">About</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="/privacy/">Privacy</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="/terms/">Terms</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="mailto:hello@manualfor.life">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/js/site.js"></script>
+</body>
+</html>
