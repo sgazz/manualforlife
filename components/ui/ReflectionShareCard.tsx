@@ -6,6 +6,7 @@ import { ShareTraceCard } from "@/components/trace/ShareTraceCard";
 import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
 import { CopyTraceTextButton } from "@/components/ui/CopyTraceTextButton";
 import { NativeShareButton } from "@/components/ui/NativeShareButton";
+import { ShareImageButton } from "@/components/ui/ShareImageButton";
 import { buildTraceUrl } from "@/lib/site";
 import type { ToneValue } from "@/lib/tones";
 
@@ -245,6 +246,14 @@ export function ReflectionShareCard({
                 />
               ) : null}
               <CopyTraceTextButton traceText={trimmedTraceText} variant="full" />
+              {entryId && traceShareUrl ? (
+                <ShareImageButton
+                  traceText={trimmedTraceText}
+                  entryId={entryId}
+                  signature={signature}
+                  variant="full"
+                />
+              ) : null}
               {entryId && traceShareUrl ? (
                 <NativeShareButton traceText={trimmedTraceText} entryId={entryId} />
               ) : null}

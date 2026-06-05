@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FeaturedTraces } from "@/components/FeaturedTraces";
+import { DailyTrace } from "@/components/DailyTrace";
 import { Hero } from "@/components/Hero";
+import { EditorsChoice } from "@/components/EditorsChoice";
+import { MostSaved } from "@/components/MostSaved";
 import { InputBox } from "@/components/InputBox";
 import { LivePanel } from "@/components/panels/LivePanel";
 import { PurposeModal } from "@/components/ui/PurposeModal";
@@ -29,6 +31,10 @@ import {
   writeStoredSavedTraces,
   type SavedTrace,
 } from "@/lib/savedTraces";
+import { resolveEditorsChoiceItems } from "@/lib/editorsChoice";
+import { selectDailyTrace } from "@/lib/dailyTrace";
+import { mergeEntriesById } from "@/lib/mostSaved";
+import { TRACE_OF_THE_DAY_TEXT } from "@/lib/traceOfTheDay";
 import type { ToneValue } from "@/lib/tones";
 import type {
   Entry,
@@ -480,6 +486,49 @@ function ThemedContent({
     });
   const recentEntries = liveEntries;
 
+  const loadedEntries = useMemo(
+    () => mergeEntriesById(entries, recentEntries, olderEntries),
+    [entries, olderEntries, recentEntries],
+  );
+
+  const dailyTraceEntry = useMemo(
+    () => selectDailyTrace(loadedEntries),
+    [loadedEntries],
+  );
+
+  const mostSavedExcludeIds = useMemo(
+    () => (dailyTraceEntry ? [dailyTraceEntry.id] : []),
+    [dailyTraceEntry],
+  );
+
+  const editorsChoiceItems = useMemo(
+    () =>
+      resolveEditorsChoiceItems(loadedEntries, {
+        excludeTexts: [TRACE_OF_THE_DAY_TEXT],
+      }),
+    [loadedEntries],
+  );
+
+  const resolveLoadedEntry = useCallback(
+    (entryId: string) => loadedEntries.find((entry) => entry.id === entryId),
+    [loadedEntries],
+  );
+
+  const focusWritingInput = useCallback(() => {
+    const input = document.getElementById("entry-text");
+    if (!input) {
+      return;
+    }
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    input.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "center",
+    });
+    window.requestAnimationFrame(() => {
+      input.focus({ preventScroll: true });
+    });
+  }, []);
+
   const hasStartedThought = text.trim().length > 0;
   const isFocusModeActive = isTyping || (isWritingFocused && text.trim().length > 0);
   const liveBadgeCount = openPanel === "live" ? 0 : newSinceLoadCount;
@@ -693,6 +742,53 @@ function ThemedContent({
         >
           <Hero />
         </div>
+        <DailyTrace
+          entry={dailyTraceEntry}
+          isLoading={isLoading}
+          subdued={hasStartedThought || isFocusModeActive}
+          onStar={(entryId, starOpts) =>
+            onStar(entryId, {
+              ...starOpts,
+              closePanelOnSuccess: isMobile,
+            })
+          }
+          isStarred={
+            dailyTraceEntry ? starredEntryIds.includes(dailyTraceEntry.id) : false
+          }
+          isStarring={
+            dailyTraceEntry
+              ? Boolean(starringEntryIds[dailyTraceEntry.id])
+              : false
+          }
+          onLeaveTrace={focusWritingInput}
+        />
+        <MostSaved
+          entries={loadedEntries}
+          excludeEntryIds={mostSavedExcludeIds}
+          isLoading={isLoading}
+          subdued={hasStartedThought || isFocusModeActive}
+          onStar={(entryId, starOpts) =>
+            onStar(entryId, {
+              ...starOpts,
+              closePanelOnSuccess: isMobile,
+            })
+          }
+          starringEntryIds={starringEntryIds}
+          starredEntryIds={starredEntryIds}
+        />
+        <EditorsChoice
+          items={editorsChoiceItems}
+          subdued={hasStartedThought || isFocusModeActive}
+          onStar={(entryId, starOpts) =>
+            onStar(entryId, {
+              ...starOpts,
+              closePanelOnSuccess: isMobile,
+            })
+          }
+          starringEntryIds={starringEntryIds}
+          starredEntryIds={starredEntryIds}
+          resolveEntry={resolveLoadedEntry}
+        />
         <div className="pt-2 sm:pt-0">
           <InputBox
             value={text}
@@ -711,7 +807,6 @@ function ThemedContent({
             }
           />
         </div>
-        <FeaturedTraces subdued={hasStartedThought || isFocusModeActive} />
         {errorMessage ? (
           <p
             className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"

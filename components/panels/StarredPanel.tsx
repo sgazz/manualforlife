@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { ToneBadge } from "@/components/ToneBadge";
 import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
+import { ShareImageButton } from "@/components/ui/ShareImageButton";
 import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import type { Entry, LoadingEntryMap, StarActionOptions } from "@/types/ui";
 
@@ -79,6 +80,13 @@ export function StarredPanel({
                   </span>
                   <div className="flex items-center gap-0.5">
                     <CopyTraceLinkButton entryId={entry.id} />
+                    <ShareImageButton
+                      traceText={entry.text}
+                      entryId={entry.id}
+                      signature={entry.signature}
+                      createdAt={entry.created_at}
+                      variant="inline"
+                    />
                     <button
                       type="button"
                       disabled={Boolean(starringEntryIds[entry.id])}

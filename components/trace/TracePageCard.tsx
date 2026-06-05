@@ -32,7 +32,12 @@ export function TracePageCard({ entry }: TracePageCardProps) {
           dateLabel={formattedDate}
           variant="page"
         />
-        <TracePageShareActions entryId={entry.id} traceText={entry.text} />
+        <TracePageShareActions
+          entryId={entry.id}
+          traceText={entry.text}
+          signature={entry.signature}
+          createdAt={entry.created_at}
+        />
         <Link
           href="/"
           className="inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2.5 text-sm font-medium transition-[opacity,transform] duration-200 hover:brightness-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) focus-visible:ring-offset-2"

@@ -359,7 +359,8 @@
 
     @media (max-width: 920px) {
       .examples,
-      .idea-grid {
+      .idea-grid,
+      .stat-grid {
         grid-template-columns: 1fr;
       }
 
@@ -397,6 +398,153 @@
       .site-footer__inner {
         flex-direction: column;
         text-align: center;
+      }
+    }
+
+    /* Social proof */
+    .social-proof {
+      padding-top: 0;
+      text-align: center;
+    }
+
+    .social-proof .section-title {
+      font-size: clamp(1.75rem, 4.5vw, 2.65rem);
+      max-width: 22ch;
+      margin-inline: auto;
+    }
+
+    .social-proof__fallback {
+      margin: 1.75rem auto 0;
+      max-width: 36ch;
+      color: var(--muted);
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.25rem, 3vw, 1.65rem);
+      line-height: 1.55;
+      text-wrap: balance;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 2.75rem);
+      margin-top: clamp(2rem, 4vw, 2.75rem);
+    }
+
+    .stat {
+      display: grid;
+      gap: 0.45rem;
+      justify-items: center;
+    }
+
+    .stat__value {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat__label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .social-proof.is-visible .stat__value {
+      transition: opacity 600ms ease, transform 600ms ease;
+    }
+
+    /* Featured traces */
+    .featured-traces {
+      text-align: center;
+    }
+
+    .featured-traces .section-subtitle {
+      margin: 0.85rem auto 0;
+      max-width: 28ch;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.7;
+      text-wrap: balance;
+    }
+
+    .featured-traces .examples {
+      margin-top: clamp(1.75rem, 4vw, 2.25rem);
+    }
+
+    .featured-traces .trace-card {
+      min-height: 200px;
+      padding: clamp(1.5rem, 3vw, 2rem) clamp(1.25rem, 2.5vw, 1.75rem);
+      transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .featured-traces .trace-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 32px rgba(20, 15, 10, 0.07);
+        border-color: rgba(50, 38, 28, 0.12);
+      }
+    }
+
+    .featured-traces .trace-card:focus-within {
+      outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+      outline-offset: 3px;
+    }
+
+    .featured-traces .trace-card blockquote {
+      font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+      line-height: 1.48;
+    }
+
+    .featured-traces__cta {
+      margin-top: clamp(2rem, 4vw, 2.75rem);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stat__value,
+      .featured-traces .trace-card {
+        transition: none;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141210;
+        --bg-soft: #1a1714;
+        --surface: rgba(28, 24, 21, 0.72);
+        --text: #f3ede4;
+        --muted: #a89f94;
+        --line: rgba(243, 237, 228, 0.1);
+        --accent: #c4a876;
+        --accent-dark: #b89a6a;
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 42%),
+          linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+      }
+
+      body::before {
+        background-image: radial-gradient(rgba(255, 255, 255, 0.03) 0.7px, transparent 0.7px);
+      }
+
+      .site-header {
+        background: rgba(20, 18, 16, 0.72);
+        border-bottom-color: rgba(243, 237, 228, 0.06);
+      }
+
+      .trace-card,
+      .idea-card {
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .button--ghost {
+        background: rgba(255, 255, 255, 0.04);
       }
     }
   </style>
@@ -449,6 +597,52 @@
       </div>
     </section>
 
+    <section class="section social-proof" aria-labelledby="social-proof-title">
+      <div class="container">
+        <h2 id="social-proof-title" class="section-title">Growing archive of human wisdom</h2>
+        <div class="social-proof__body" data-social-proof>
+          <p class="social-proof__fallback" data-social-fallback hidden>
+            Thousands of thoughts preserved for future generations.
+          </p>
+          <div class="stat-grid" data-stat-grid hidden>
+            <div class="stat">
+              <span class="stat__value" data-stat-value="traces" aria-label="Traces preserved">0</span>
+              <span class="stat__label">Traces Preserved</span>
+            </div>
+            <div class="stat">
+              <span class="stat__value" data-stat-value="countries" aria-label="Countries represented">0</span>
+              <span class="stat__label">Countries</span>
+            </div>
+            <div class="stat">
+              <span class="stat__value" data-stat-value="starred" aria-label="Times saved">0</span>
+              <span class="stat__label">Times Saved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section featured-traces" aria-labelledby="featured-traces-title">
+      <div class="container">
+        <h2 id="featured-traces-title" class="section-title">Three traces worth keeping</h2>
+        <p class="section-subtitle">Thoughts left by strangers.</p>
+        <div class="examples">
+          <article class="trace-card" tabindex="0">
+            <blockquote>Most people aren&rsquo;t thinking about you nearly as much as you think.</blockquote>
+          </article>
+          <article class="trace-card" tabindex="0">
+            <blockquote>Call your parents more often.</blockquote>
+          </article>
+          <article class="trace-card" tabindex="0">
+            <blockquote>The fear lasts longer than the pain.</blockquote>
+          </article>
+        </div>
+        <div class="featured-traces__cta">
+          <a href="https://app.manualfor.life" class="button button--ghost">Read more in the archive</a>
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="container">
         <div class="section-card" style="text-align:center;">
@@ -464,23 +658,6 @@
       </div>
     </section>
 
-    <section class="section" id="examples">
-      <div class="container">
-        <p class="section-label" style="text-align:center;">A few traces</p>
-        <h2 class="section-title" style="text-align:center;">A sentence can stay with you.</h2>
-        <div class="examples">
-          <article class="trace-card">
-            <blockquote>Rest before you break.</blockquote>
-          </article>
-          <article class="trace-card">
-            <blockquote>You don’t need permission to begin.</blockquote>
-          </article>
-          <article class="trace-card">
-            <blockquote>What you repeat becomes you.</blockquote>
-          </article>
-        </div>
-      </div>
-    </section>
 
     <section class="section">
       <div class="container">
@@ -526,5 +703,95 @@
       <div>For future generations.</div>
     </div>
   </footer>
+
+  <script>
+    (function initSocialProof() {
+      /** Static placeholders until a public stats endpoint is available on the landing host. */
+      var STATS = {
+        traces: 2431,
+        countries: 58,
+        starred: 11802
+      };
+
+      var section = document.querySelector(".social-proof");
+      var fallback = document.querySelector("[data-social-fallback]");
+      var grid = document.querySelector("[data-stat-grid]");
+      if (!section || !fallback || !grid) return;
+
+      var hasStats =
+        typeof STATS.traces === "number" &&
+        typeof STATS.countries === "number" &&
+        typeof STATS.starred === "number";
+
+      if (!hasStats) {
+        fallback.hidden = false;
+        return;
+      }
+
+      grid.hidden = false;
+      fallback.hidden = true;
+
+      var valueNodes = {
+        traces: grid.querySelector('[data-stat-value="traces"]'),
+        countries: grid.querySelector('[data-stat-value="countries"]'),
+        starred: grid.querySelector('[data-stat-value="starred"]')
+      };
+
+      function formatCount(value) {
+        return value.toLocaleString("en-US");
+      }
+
+      function setValues(values) {
+        Object.keys(valueNodes).forEach(function (key) {
+          var node = valueNodes[key];
+          if (node) node.textContent = formatCount(values[key]);
+        });
+      }
+
+      function animateValues() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          setValues(STATS);
+          return;
+        }
+
+        var duration = 1200;
+        var start = null;
+
+        function step(timestamp) {
+          if (start === null) start = timestamp;
+          var progress = Math.min((timestamp - start) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          setValues({
+            traces: Math.round(STATS.traces * eased),
+            countries: Math.round(STATS.countries * eased),
+            starred: Math.round(STATS.starred * eased)
+          });
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        }
+
+        window.requestAnimationFrame(step);
+      }
+
+      if ("IntersectionObserver" in window) {
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              section.classList.add("is-visible");
+              animateValues();
+              observer.disconnect();
+            });
+          },
+          { threshold: 0.35 }
+        );
+        observer.observe(section);
+      } else {
+        section.classList.add("is-visible");
+        animateValues();
+      }
+    })();
+  </script>
 </body>
 </html>

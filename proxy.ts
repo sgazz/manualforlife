@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_APP_HOST = "app.manualfor.life";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (process.env.VERCEL_ENV !== "production") {
     return NextResponse.next();
   }

@@ -1,13 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { formatTraceShareText } from "@/lib/traceShare";
+import {
+  formatTraceShareClipboardPayload,
+  formatTraceShareText,
+} from "@/lib/traceShare";
 
 type CopyTraceTextButtonProps = {
   traceText: string;
   label?: string;
   variant?: "inline" | "full";
   className?: string;
+  /** When true, copy includes a URL on a second line. */
+  includeAppUrl?: boolean;
+  /** URL appended when includeAppUrl is true. Defaults to public app origin. */
+  shareUrl?: string;
 };
 
 type CopyFeedback = "idle" | "copied" | "failed";
@@ -17,6 +24,8 @@ export function CopyTraceTextButton({
   label = "Copy text",
   variant = "inline",
   className = "",
+  includeAppUrl = false,
+  shareUrl,
 }: CopyTraceTextButtonProps) {
   const [feedback, setFeedback] = useState<CopyFeedback>("idle");
   const feedbackTimeoutRef = useRef<number | null>(null);
@@ -45,13 +54,16 @@ export function CopyTraceTextButton({
       return;
     }
     try {
-      await navigator.clipboard.writeText(formatTraceShareText(trimmed));
+      const payload = includeAppUrl
+        ? formatTraceShareClipboardPayload(trimmed, shareUrl)
+        : formatTraceShareText(trimmed);
+      await navigator.clipboard.writeText(payload);
       setFeedback("copied");
     } catch {
       setFeedback("failed");
     }
     clearFeedbackLater();
-  }, [clearFeedbackLater, traceText]);
+  }, [clearFeedbackLater, includeAppUrl, shareUrl, traceText]);
 
   const isFull = variant === "full";
 

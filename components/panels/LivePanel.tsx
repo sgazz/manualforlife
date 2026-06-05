@@ -5,6 +5,7 @@ import { PanelShell } from "@/components/panels/PanelShell";
 import { ToneBadge } from "@/components/ToneBadge";
 import { ToneFilter } from "@/components/ToneFilter";
 import { CopyTraceLinkButton } from "@/components/ui/CopyTraceLinkButton";
+import { ShareImageButton } from "@/components/ui/ShareImageButton";
 import { TraceReadInLanguage } from "@/components/ui/TraceReadInLanguage";
 import {
   entryMatchesToneFilter,
@@ -88,7 +89,7 @@ export function LivePanel({
   }, []);
 
   return (
-    <PanelShell side="left" isOpen={isOpen} onClose={onClose} title="Live Traces">
+    <PanelShell side="left" isOpen={isOpen} onClose={onClose} title="Live Archive">
       <div
         className={`ios-scroll-touch relative min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0 transition-opacity duration-300 ease-in-out sm:pr-1 ${
           isTyping ? "opacity-65" : "opacity-100"
@@ -135,6 +136,13 @@ export function LivePanel({
                     </span>
                     <div className="flex items-center gap-0.5">
                       <CopyTraceLinkButton entryId={entry.id} />
+                      <ShareImageButton
+                        traceText={entry.text}
+                        entryId={entry.id}
+                        signature={entry.signature}
+                        createdAt={entry.created_at}
+                        variant="inline"
+                      />
                       <button
                         type="button"
                         disabled={isStarring}
@@ -214,6 +222,13 @@ export function LivePanel({
                         </span>
                         <div className="flex items-center gap-0.5">
                           <CopyTraceLinkButton entryId={entry.id} />
+                          <ShareImageButton
+                            traceText={entry.text}
+                            entryId={entry.id}
+                            signature={entry.signature}
+                            createdAt={entry.created_at}
+                            variant="inline"
+                          />
                           <button
                             type="button"
                             disabled={isStarring}

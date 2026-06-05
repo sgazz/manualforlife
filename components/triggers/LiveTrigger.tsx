@@ -41,12 +41,12 @@ export function LiveTrigger({
   return (
     <PanelTrigger
       side="left"
-      label="Live"
-      supportingText="Live traces"
+      label="Archive"
+      supportingText="Live archive"
       isOpen={isOpen}
       isHushed={isHushed}
       onToggle={onToggle}
-      ariaLabel="Open live traces panel"
+      ariaLabel="Open live archive panel"
       badgeCount={newTraceCount}
       showLivePulse
       highlighted={highlighted}

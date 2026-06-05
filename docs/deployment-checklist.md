@@ -19,7 +19,7 @@ Generated public links (canonical, Open Graph, Copy link, Native Share) always u
 Committed in repo — no Vercel Dashboard step required:
 
 1. **`vercel.json`** — permanent redirect `manualforlife.vercel.app/*` → `https://app.manualfor.life/*`
-2. **`middleware.ts`** — in **production only**, any other `*.vercel.app` host on this deployment redirects to `app.manualfor.life` (preview deployments are excluded)
+2. **`proxy.ts`** — in **production only**, any other `*.vercel.app` host on this deployment redirects to `app.manualfor.life` (preview deployments are excluded)
 3. **`CanonicalHostRedirect`** (client) — production-only fallback so iOS share UI never shows a `.vercel.app` document host if edge redirect was skipped
 
 After changing redirect config, redeploy production for rules to take effect.
@@ -61,7 +61,7 @@ After changing redirect config, redeploy production for rules to take effect.
 - [ ] Push to main (or merge PR)
 - [ ] Vercel production deployment succeeds
 - [ ] Vercel domain alias includes `app.manualfor.life`
-- [ ] `vercel.json` redirect and `middleware.ts` deployed (`.vercel.app` → `app.manualfor.life`)
+- [ ] `vercel.json` redirect and `proxy.ts` deployed (`.vercel.app` → `app.manualfor.life`)
 - [ ] No build warnings that block runtime
 
 ## After deploy — smoke tests

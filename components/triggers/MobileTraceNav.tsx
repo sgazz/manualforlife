@@ -26,7 +26,7 @@ export function MobileTraceNav({
       <div className="mx-auto flex max-w-lg items-stretch">
         <button
           type="button"
-          aria-label="Open live traces"
+          aria-label="Open live archive"
           aria-current={openPanel === "live" ? "page" : undefined}
           onClick={onOpenLive}
           className={`relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-xs transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--theme-accent-soft) ${
@@ -42,7 +42,7 @@ export function MobileTraceNav({
                 openPanel !== "live" ? "motion-safe:animate-[livePulse_2.4s_ease-in-out_infinite]" : ""
               }`}
             />
-            <span className="font-medium tracking-wide">Live</span>
+            <span className="font-medium tracking-wide">Archive</span>
             {liveBadgeCount > 0 && openPanel !== "live" ? (
               <span
                 aria-label={`${liveBadgeCount} new traces`}
