@@ -11,7 +11,7 @@ export function ToneFilter({ value, onChange }: ToneFilterProps) {
   return (
     <div
       role="group"
-      aria-label="Browse traces by tone"
+      aria-label="Browse Traces by tone"
       className="ios-scroll-touch -mx-1 flex gap-1 overflow-x-auto px-1 pb-1"
     >
       {TONE_FILTER_OPTIONS.map((option) => {

@@ -241,7 +241,7 @@ export function ReflectionShareCard({
               {entryId && traceShareUrl ? (
                 <CopyTraceLinkButton
                   entryId={entryId}
-                  label="Copy link to your trace"
+                  label="Copy link to your Trace"
                   variant="full"
                 />
               ) : null}

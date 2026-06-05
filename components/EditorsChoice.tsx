@@ -47,7 +47,7 @@ function EditorsChoiceCard({
       <div
         className="mt-4 flex flex-wrap items-start justify-center gap-x-1 gap-y-2"
         role="group"
-        aria-label={`Actions for selected trace: ${item.text}`}
+        aria-label={`Actions for Selected Trace: ${item.text}`}
       >
         {hasEntry && item.entryId ? (
           <>
@@ -72,17 +72,17 @@ function EditorsChoiceCard({
                 onClick={() => void onStar(item.entryId!, { sourceEntry })}
                 aria-label={
                   isStarred
-                    ? "Remove saved trace"
+                    ? "Remove Saved Trace"
                     : isStarring
-                      ? "Saving trace"
-                      : "Save trace"
+                      ? "Saving Trace"
+                      : "Save Trace"
                 }
                 title={
                   isStarred
                     ? "Remove save"
                     : isStarring
                       ? "Saving..."
-                      : "Save trace"
+                      : "Save Trace"
                 }
                 className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-2 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) active:scale-95 disabled:opacity-45 motion-reduce:transition-none"
               >

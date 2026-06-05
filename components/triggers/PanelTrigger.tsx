@@ -72,7 +72,7 @@ export function PanelTrigger({
       </span>
       {badgeCount > 0 && !isOpen ? (
         <span
-          aria-label={`${badgeCount} new traces`}
+          aria-label={`${badgeCount} new Traces`}
           className="ml-0.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.6875rem] font-medium tabular-nums"
           style={{
             backgroundColor: "color-mix(in srgb, var(--theme-accent) 88%, #f8ecdb 12%)",

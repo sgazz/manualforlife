@@ -8,7 +8,7 @@ import {
 } from "@/lib/entries";
 import { buildTracePath, siteUrl } from "@/lib/site";
 
-const TRACE_TITLE = "A trace left on manualfor.life";
+const TRACE_TITLE = "A Trace left on manualfor.life";
 const NOT_FOUND_TITLE = "Trace not found — manualfor.life";
 
 type TracePageProps = {

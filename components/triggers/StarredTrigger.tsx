@@ -28,7 +28,7 @@ export function StarredTrigger({
       isOpen={isOpen}
       isHushed={isHushed}
       onToggle={onToggle}
-      ariaLabel="Open saved traces panel"
+      ariaLabel="Open Saved Traces panel"
       icon={<SavedIcon />}
     />
   );

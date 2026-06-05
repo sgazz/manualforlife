@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 function formatCountLabel(count: number) {
   const formatted = count.toLocaleString("en-US");
-  const noun = count === 1 ? "thought" : "thoughts";
+  const noun = count === 1 ? "Trace" : "Traces";
   return `${formatted} ${noun} left by strangers`;
 }
 

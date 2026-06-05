@@ -85,7 +85,7 @@ export function EntriesList({
       style={{ boxShadow: "var(--theme-shadow-soft)" }}
     >
       <h2 className="mb-4 text-sm font-medium tracking-wide text-(--theme-muted) uppercase transition-colors duration-400">
-        Latest traces
+        Latest Traces
       </h2>
       {starError ? (
         <p className="mb-3 text-xs text-(--theme-error-text)">{starError}</p>
@@ -120,7 +120,7 @@ export function EntriesList({
         </div>
       ) : entries.length === 0 ? (
         <p className="py-4 text-sm text-(--theme-muted)">
-          No entries yet. Leave the first trace.
+          No entries yet. Leave the first Trace.
         </p>
       ) : (
         <div className="relative">
@@ -209,7 +209,7 @@ export function EntriesList({
           <button
             type="button"
             onClick={() => setShowAll((previous) => !previous)}
-            title={showAll ? "Show fewer traces" : "Show more traces"}
+            title={showAll ? "Show fewer Traces" : "Show more Traces"}
             className="inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-1.5 text-xs tracking-wide transition"
             style={{
               borderColor: "var(--theme-border)",

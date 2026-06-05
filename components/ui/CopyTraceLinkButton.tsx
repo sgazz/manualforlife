@@ -57,7 +57,7 @@ export function CopyTraceLinkButton({
       <button
         type="button"
         onClick={() => void handleCopy()}
-        aria-label="Copy link to this trace"
+        aria-label="Copy link to this Trace"
         className={
           isFull
             ? "inline-flex min-h-11 w-full items-center justify-center rounded-full border px-5 py-2.5 text-sm font-normal tracking-wide text-(--theme-muted)/78 transition-[color,background-color,border-color] duration-200 hover:text-(--theme-text)/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) focus-visible:ring-offset-2 motion-reduce:transition-none"

@@ -107,7 +107,7 @@ export function NativeShareButton({
       <button
         type="button"
         onClick={() => void handleShare()}
-        aria-label="Share this trace"
+        aria-label="Share this Trace"
         className={isFull ? fullButtonClass : inlineButtonClass}
         style={isFull ? buttonSurfaceStyle : undefined}
       >

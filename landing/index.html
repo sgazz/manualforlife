@@ -2,21 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function () {
+      var key = "manualforlife-theme";
+      var theme = "light";
+      try {
+        var stored = localStorage.getItem(key);
+        if (stored === "light" || stored === "dark") {
+          theme = stored;
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      } catch (e) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          theme = "dark";
+        }
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <script>
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    if (location.hash) {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manualfor.life — One thought worth keeping</title>
-  <meta name="description" content="A quiet place to leave one thought that mattered." />
+  <meta name="description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
   <link rel="canonical" href="https://manualfor.life/" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://manualfor.life/" />
   <meta property="og:title" content="Manualfor.life — One thought worth keeping" />
-  <meta property="og:description" content="A quiet place to leave one thought that mattered." />
+  <meta property="og:description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
   <meta property="og:image" content="https://manualfor.life/og/og-share.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="Manualfor.life" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Manualfor.life — One thought worth keeping" />
-  <meta name="twitter:description" content="A quiet place to leave one thought that mattered." />
+  <meta name="twitter:description" content="A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Manualfor.life",
+    "url": "https://manualfor.life/",
+    "description": "A quiet archive where people leave one thought that changed their life — lessons, regrets, courage, kindness, and change, preserved for future generations."
+  }
+  </script>
   <meta name="twitter:image" content="https://manualfor.life/og/og-share.png" />
   <meta name="theme-color" content="#f8f5f0" />
   <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
@@ -28,7 +64,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Caveat:wght@500&display=swap" rel="stylesheet">
   <style>
-    :root {
+    :root,
+    [data-theme="light"] {
+      color-scheme: light;
       --bg: #f8f5f0;
       --bg-soft: #f2ede4;
       --surface: rgba(255, 255, 255, 0.52);
@@ -38,8 +76,41 @@
       --accent: #b89a6a;
       --accent-dark: #9d8054;
       --shadow: 0 20px 50px rgba(36, 28, 21, 0.08);
+      --header-bg: rgba(248, 245, 240, 0.64);
+      --header-border: rgba(50, 38, 28, 0.06);
+      --ghost-bg: rgba(255, 255, 255, 0.36);
+      --trace-bg: rgba(255, 255, 255, 0.46);
+      --body-gradient-top: rgba(255, 255, 255, 0.72);
+      --grain: rgba(40, 30, 20, 0.025);
+      --menu-surface: rgba(252, 247, 240, 0.97);
+      --menu-border: rgba(50, 38, 28, 0.1);
+      --menu-shadow: 0 18px 44px rgba(36, 28, 21, 0.11);
+      --menu-backdrop: rgba(31, 26, 23, 0.16);
       --radius: 28px;
       --container: 1120px;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #141210;
+      --bg-soft: #1a1714;
+      --surface: rgba(28, 24, 21, 0.72);
+      --text: #f3ede4;
+      --muted: #a89f94;
+      --line: rgba(243, 237, 228, 0.1);
+      --accent: #c4a876;
+      --accent-dark: #b89a6a;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      --header-bg: rgba(20, 18, 16, 0.72);
+      --header-border: rgba(243, 237, 228, 0.06);
+      --ghost-bg: rgba(255, 255, 255, 0.04);
+      --trace-bg: rgba(255, 255, 255, 0.04);
+      --body-gradient-top: rgba(255, 255, 255, 0.04);
+      --grain: rgba(255, 255, 255, 0.03);
+      --menu-surface: rgba(26, 22, 19, 0.97);
+      --menu-border: rgba(243, 237, 228, 0.09);
+      --menu-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+      --menu-backdrop: rgba(8, 6, 5, 0.42);
     }
 
     * { box-sizing: border-box; }
@@ -54,7 +125,7 @@
       min-height: 100vh;
       min-height: 100dvh;
       background:
-        radial-gradient(circle at top, rgba(255,255,255,0.72), transparent 42%),
+        radial-gradient(circle at top, var(--body-gradient-top), transparent 42%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
       color: var(--text);
       font-family: "Inter", system-ui, sans-serif;
@@ -62,6 +133,7 @@
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       overflow-x: hidden;
+      transition: background 200ms ease, color 200ms ease;
     }
 
     body::before {
@@ -70,13 +142,38 @@
       inset: 0;
       pointer-events: none;
       background-image:
-        radial-gradient(rgba(40, 30, 20, 0.025) 0.7px, transparent 0.7px);
+        radial-gradient(var(--grain) 0.7px, transparent 0.7px);
       background-size: 14px 14px;
       opacity: 0.55;
       mask-image: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.12));
+      transition: opacity 200ms ease;
     }
 
     a { color: inherit; text-decoration: none; }
+
+    a:focus-visible,
+    .button:focus-visible,
+    .theme-toggle:focus-visible,
+    .menu-toggle:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 0.9rem;
+    }
+
+    .skip-link:focus {
+      left: 1rem;
+      top: 1rem;
+    }
 
     .container {
       width: min(calc(100% - 2rem), var(--container));
@@ -87,23 +184,30 @@
       position: sticky;
       top: 0;
       z-index: 20;
+      --header-height: 72px;
       backdrop-filter: blur(14px);
-      background: rgba(248, 245, 240, 0.64);
-      border-bottom: 1px solid rgba(50, 38, 28, 0.06);
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 55%, transparent),
+        0 6px 20px rgba(36, 28, 21, 0.035);
+      transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
     }
 
     .site-header__inner {
-      display: flex;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
       gap: 1rem;
       min-height: 72px;
     }
 
     .brand {
+      justify-self: start;
+      grid-column: 1;
       font-family: "Cormorant Garamond", serif;
-      font-size: clamp(1.45rem, 2.5vw, 1.9rem);
-      letter-spacing: 0.01em;
+      font-size: clamp(1.7rem, 2.2vw, 2rem);
+      letter-spacing: 0.015em;
       line-height: 1;
       display: inline-flex;
       align-items: baseline;
@@ -117,13 +221,108 @@
       transform: translateY(0.05em);
     }
 
-    .header-link {
-      color: var(--muted);
-      font-size: 0.95rem;
-      transition: color 220ms ease;
+    .site-nav {
+      justify-self: center;
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: clamp(1.6rem, 2.4vw, 2rem);
     }
 
-    .header-link:hover { color: var(--text); }
+    .site-nav a {
+      color: var(--muted);
+      font-size: 0.9rem;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      transition: color 200ms ease;
+    }
+
+    .site-nav a:hover { color: var(--text); }
+
+    .site-nav__leave {
+      color: color-mix(in srgb, var(--text) 82%, var(--muted) 18%);
+    }
+
+    .site-nav__leave:hover {
+      color: var(--text);
+    }
+
+    .header-controls {
+      justify-self: end;
+      grid-column: 3;
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    .theme-toggle,
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.375rem;
+      height: 2.375rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 999px;
+      transition: color 200ms ease, background-color 200ms ease;
+    }
+
+    .theme-toggle:hover,
+    .theme-toggle:focus-visible,
+    .menu-toggle:hover,
+    .menu-toggle:focus-visible {
+      color: var(--text);
+      background: color-mix(in srgb, var(--muted) 11%, transparent);
+    }
+
+    .theme-toggle svg,
+    .menu-toggle svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .theme-toggle__sun {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle__moon {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle__sun {
+      display: block;
+    }
+
+    .menu-toggle {
+      display: none;
+    }
+
+    .menu-toggle__close {
+      display: none;
+    }
+
+    .site-header.is-menu-open .menu-toggle__open {
+      display: none;
+    }
+
+    .site-header.is-menu-open .menu-toggle__close {
+      display: block;
+    }
+
+    .mobile-menu-backdrop {
+      display: none;
+    }
 
     .hero {
       padding: clamp(4.5rem, 9vw, 7.5rem) 0 clamp(3rem, 6vw, 4.5rem);
@@ -170,6 +369,16 @@
       text-wrap: balance;
     }
 
+    .hero-support {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.88rem, 1.7vw, 0.98rem);
+      line-height: 1.75;
+      text-wrap: balance;
+      opacity: 0.82;
+    }
+
     .hero-actions {
       display: flex;
       flex-wrap: wrap;
@@ -210,7 +419,7 @@
     .button--ghost {
       border-color: var(--line);
       color: var(--muted);
-      background: rgba(255,255,255,0.36);
+      background: var(--ghost-bg);
     }
 
     .button--ghost:hover {
@@ -265,7 +474,7 @@
     }
 
     .trace-card {
-      background: rgba(255,255,255,0.46);
+      background: var(--trace-bg);
       border: 1px solid rgba(50, 38, 28, 0.08);
       border-radius: 22px;
       padding: 1.35rem 1.2rem;
@@ -294,28 +503,16 @@
 
     .idea-card {
       padding: 1.35rem 1.2rem;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.34);
-      border: 1px solid rgba(50, 38, 28, 0.07);
-    }
-
-    .idea-card__icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(184, 154, 106, 0.14);
-      color: var(--accent-dark);
-      font-size: 1rem;
-      margin-bottom: 0.9rem;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid rgba(50, 38, 28, 0.1);
     }
 
     .idea-card h3 {
       margin: 0 0 0.45rem;
-      font-size: 1rem;
-      font-weight: 600;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.15rem;
+      font-weight: 500;
       color: var(--text);
     }
 
@@ -351,10 +548,35 @@
       font-size: 0.95rem;
     }
 
+    .footer-brand-block {
+      display: grid;
+      gap: 0.15rem;
+    }
+
     .footer-brand {
       font-family: "Cormorant Garamond", serif;
       font-size: 1.25rem;
       color: var(--text);
+    }
+
+    .footer-nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .footer-nav a {
+      color: var(--muted);
+      transition: color 220ms ease;
+    }
+
+    .footer-nav a:hover { color: var(--text); }
+
+    .footer-nav__sep {
+      color: color-mix(in srgb, var(--muted) 55%, transparent);
+      user-select: none;
     }
 
     @media (max-width: 920px) {
@@ -369,13 +591,123 @@
       }
     }
 
-    @media (max-width: 640px) {
-      .site-header__inner {
-        min-height: 64px;
+    @media (max-width: 768px) {
+      .site-header {
+        --header-height: 68px;
       }
 
-      .header-link {
-        font-size: 0.9rem;
+      .site-header__inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: var(--header-height);
+      }
+
+      .brand {
+        grid-column: auto;
+        font-size: clamp(1.55rem, 5vw, 1.75rem);
+      }
+
+      .site-nav {
+        position: fixed;
+        top: calc(var(--header-height) + env(safe-area-inset-top, 0px) + 0.625rem);
+        left: 1rem;
+        right: 1rem;
+        z-index: 30;
+        grid-column: auto;
+        justify-self: stretch;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 0.35rem 0;
+        border-radius: 22px;
+        background: var(--menu-surface);
+        border: 1px solid var(--menu-border);
+        box-shadow: var(--menu-shadow);
+        backdrop-filter: blur(18px);
+        display: flex;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-6px) scale(0.98);
+        transform-origin: top center;
+        transition:
+          opacity 200ms ease,
+          transform 200ms ease,
+          visibility 200ms ease;
+      }
+
+      .site-header.is-menu-open .site-nav {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0) scale(1);
+      }
+
+      .site-nav a {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0.65rem 1.15rem;
+        font-size: 0.98rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .site-nav a:last-child {
+        border-bottom: none;
+      }
+
+      .header-controls {
+        grid-column: auto;
+        justify-self: auto;
+        margin-left: auto;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .mobile-menu-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        top: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+        z-index: 25;
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: var(--menu-backdrop);
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 200ms ease, visibility 200ms ease;
+      }
+
+      body.is-menu-open .mobile-menu-backdrop {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      body.is-menu-open {
+        overflow: hidden;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-menu-backdrop {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .site-header {
+        --header-height: 64px;
+      }
+
+      .site-header__inner {
+        min-height: var(--header-height);
       }
 
       .hero {
@@ -425,9 +757,11 @@
 
     .stat-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr);
       gap: clamp(1.5rem, 4vw, 2.75rem);
       margin-top: clamp(2rem, 4vw, 2.75rem);
+      max-width: 16rem;
+      margin-inline: auto;
     }
 
     .stat {
@@ -451,10 +785,6 @@
       font-size: 0.82rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-    }
-
-    .social-proof.is-visible .stat__value {
-      transition: opacity 600ms ease, transform 600ms ease;
     }
 
     /* Featured traces */
@@ -504,63 +834,75 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .stat__value,
-      .featured-traces .trace-card {
+      body,
+      .site-header,
+      .theme-toggle,
+      .featured-traces .trace-card,
+      .site-nav,
+      .mobile-menu-backdrop {
         transition: none;
-      }
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #141210;
-        --bg-soft: #1a1714;
-        --surface: rgba(28, 24, 21, 0.72);
-        --text: #f3ede4;
-        --muted: #a89f94;
-        --line: rgba(243, 237, 228, 0.1);
-        --accent: #c4a876;
-        --accent-dark: #b89a6a;
-        --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
-      }
-
-      body {
-        background:
-          radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 42%),
-          linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-      }
-
-      body::before {
-        background-image: radial-gradient(rgba(255, 255, 255, 0.03) 0.7px, transparent 0.7px);
-      }
-
-      .site-header {
-        background: rgba(20, 18, 16, 0.72);
-        border-bottom-color: rgba(243, 237, 228, 0.06);
-      }
-
-      .trace-card,
-      .idea-card {
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      .button--ghost {
-        background: rgba(255, 255, 255, 0.04);
       }
     }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
   <header class="site-header">
     <div class="container site-header__inner">
-      <a href="#top" class="brand" aria-label="Manualfor.life home">
+      <a href="/" class="brand" aria-label="Manualfor.life home">
         <span>Manualfor</span><span class="life">.life</span>
       </a>
-      <a href="https://app.manualfor.life" class="header-link">Leave a trace</a>
+      <nav class="site-nav" id="mobile-menu" aria-label="Primary navigation">
+        <a href="#why-it-exists">Why it exists</a>
+        <a href="https://app.manualfor.life">Read Traces</a>
+        <a href="https://app.manualfor.life" class="site-nav__leave">Leave a Trace</a>
+      </nav>
+      <div class="header-controls">
+        <button
+          type="button"
+          class="theme-toggle"
+          data-theme-toggle
+          aria-label="Switch to dark mode"
+        >
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="menu-toggle"
+          data-menu-toggle
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <svg class="menu-toggle__open" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg class="menu-toggle__close" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main id="top">
-    <section class="hero">
+  <button
+    type="button"
+    class="mobile-menu-backdrop"
+    data-menu-backdrop
+    aria-label="Close menu"
+    aria-hidden="true"
+    tabindex="-1"
+  ></button>
+
+  <main id="main-content">
+    <section class="hero" id="top">
       <div class="container hero__inner">
         <svg aria-hidden="true" viewBox="0 0 420 54" class="line-mark">
           <path
@@ -590,41 +932,20 @@
           A place where people leave one thought that changed their life.
         </p>
 
+        <p class="hero-support">
+          A quiet archive of lessons, regrets, courage, kindness, and change.
+        </p>
+
         <div class="hero-actions">
-          <a href="https://app.manualfor.life" class="button button--primary">Leave a trace</a>
-          <a href="https://app.manualfor.life" class="button button--ghost">Read traces</a>
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a Trace</a>
+          <a href="https://app.manualfor.life" class="button button--ghost">Read Traces</a>
         </div>
       </div>
     </section>
 
-    <section class="section social-proof" aria-labelledby="social-proof-title">
+    <section class="section featured-traces" id="featured-traces" aria-labelledby="featured-traces-title">
       <div class="container">
-        <h2 id="social-proof-title" class="section-title">Growing archive of human wisdom</h2>
-        <div class="social-proof__body" data-social-proof>
-          <p class="social-proof__fallback" data-social-fallback hidden>
-            Thousands of thoughts preserved for future generations.
-          </p>
-          <div class="stat-grid" data-stat-grid hidden>
-            <div class="stat">
-              <span class="stat__value" data-stat-value="traces" aria-label="Traces preserved">0</span>
-              <span class="stat__label">Traces Preserved</span>
-            </div>
-            <div class="stat">
-              <span class="stat__value" data-stat-value="countries" aria-label="Countries represented">0</span>
-              <span class="stat__label">Countries</span>
-            </div>
-            <div class="stat">
-              <span class="stat__value" data-stat-value="starred" aria-label="Times saved">0</span>
-              <span class="stat__label">Times Saved</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section featured-traces" aria-labelledby="featured-traces-title">
-      <div class="container">
-        <h2 id="featured-traces-title" class="section-title">Three traces worth keeping</h2>
+        <h2 id="featured-traces-title" class="section-title">A few Traces from the archive</h2>
         <p class="section-subtitle">Thoughts left by strangers.</p>
         <div class="examples">
           <article class="trace-card" tabindex="0">
@@ -643,11 +964,11 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="why-it-exists" aria-labelledby="why-it-exists-title">
       <div class="container">
         <div class="section-card" style="text-align:center;">
           <p class="section-label">Why it exists</p>
-          <h2 class="section-title">Most lessons disappear.</h2>
+          <h2 id="why-it-exists-title" class="section-title">Most lessons disappear.</h2>
           <p class="section-copy">
             We learn through time, loss, patience, mistakes, kindness, and change.
             Then many of those lessons vanish with us.
@@ -658,6 +979,22 @@
       </div>
     </section>
 
+    <section class="section social-proof" id="archive-stats" aria-labelledby="social-proof-title">
+      <div class="container">
+        <h2 id="social-proof-title" class="section-title">Growing archive of human wisdom</h2>
+        <div class="social-proof__body" data-social-proof>
+          <p class="social-proof__fallback" data-social-fallback>
+            A growing archive of traces left by strangers.
+          </p>
+          <div class="stat-grid" data-stat-grid hidden>
+            <div class="stat">
+              <span class="stat__value" data-stat-value="traces" aria-label="Traces Preserved">0</span>
+              <span class="stat__label">Traces Preserved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="section">
       <div class="container">
@@ -665,17 +1002,14 @@
         <h2 class="section-title" style="text-align:center;">A quiet archive for what matters.</h2>
         <div class="idea-grid">
           <article class="idea-card">
-            <div class="idea-card__icon">✦</div>
             <h3>Wisdom belongs to everyone</h3>
             <p>Not to experts only, but to anyone who has lived, learned, and understood something worth passing on.</p>
           </article>
           <article class="idea-card">
-            <div class="idea-card__icon">✦</div>
             <h3>One sentence can change a life</h3>
             <p>Sometimes the right words arrive at the right time and stay longer than anything else.</p>
           </article>
           <article class="idea-card">
-            <div class="idea-card__icon">✦</div>
             <h3>Leave something for someone unseen</h3>
             <p>Write for a stranger you will never meet, and for a future that has not arrived yet.</p>
           </article>
@@ -685,13 +1019,13 @@
 
     <section class="section cta-block" id="leave">
       <div class="container">
-        <p class="section-label">Leave your trace</p>
+        <p class="section-label">Leave Your Trace</p>
         <h2 class="section-title">What would you leave behind?</h2>
         <p class="section-copy">
           One thought. One lesson. One truth worth keeping.
         </p>
         <div class="hero-actions" style="margin-top: 1.4rem;">
-          <a href="https://app.manualfor.life" class="button button--primary">Leave a trace</a>
+          <a href="https://app.manualfor.life" class="button button--primary">Leave a Trace</a>
         </div>
       </div>
     </section>
@@ -699,98 +1033,183 @@
 
   <footer class="site-footer">
     <div class="container site-footer__inner">
-      <div class="footer-brand">Manualfor.life</div>
-      <div>For future generations.</div>
+      <div class="footer-brand-block">
+        <div class="footer-brand">Manualfor.life</div>
+        <div>For future generations.</div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="#why-it-exists">About</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="mailto:hello@manualfor.life?subject=Privacy">Privacy</a>
+        <span class="footer-nav__sep" aria-hidden="true">·</span>
+        <a href="mailto:hello@manualfor.life">Contact</a>
+      </nav>
     </div>
   </footer>
 
   <script>
-    (function initSocialProof() {
-      /** Static placeholders until a public stats endpoint is available on the landing host. */
-      var STATS = {
-        traces: 2431,
-        countries: 58,
-        starred: 11802
-      };
+    (function initTheme() {
+      var key = "manualforlife-theme";
+      var toggle = document.querySelector("[data-theme-toggle]");
+      var metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (!toggle) return;
 
-      var section = document.querySelector(".social-proof");
-      var fallback = document.querySelector("[data-social-fallback]");
-      var grid = document.querySelector("[data-stat-grid]");
-      if (!section || !fallback || !grid) return;
-
-      var hasStats =
-        typeof STATS.traces === "number" &&
-        typeof STATS.countries === "number" &&
-        typeof STATS.starred === "number";
-
-      if (!hasStats) {
-        fallback.hidden = false;
-        return;
+      function getTheme() {
+        return document.documentElement.getAttribute("data-theme") === "dark"
+          ? "dark"
+          : "light";
       }
 
-      grid.hidden = false;
-      fallback.hidden = true;
-
-      var valueNodes = {
-        traces: grid.querySelector('[data-stat-value="traces"]'),
-        countries: grid.querySelector('[data-stat-value="countries"]'),
-        starred: grid.querySelector('[data-stat-value="starred"]')
-      };
-
-      function formatCount(value) {
-        return value.toLocaleString("en-US");
+      function setMetaThemeColor(theme) {
+        if (!metaTheme) return;
+        metaTheme.setAttribute(
+          "content",
+          theme === "dark" ? "#141210" : "#f8f5f0"
+        );
       }
 
-      function setValues(values) {
-        Object.keys(valueNodes).forEach(function (key) {
-          var node = valueNodes[key];
-          if (node) node.textContent = formatCount(values[key]);
+      function updateToggleLabel(theme) {
+        toggle.setAttribute(
+          "aria-label",
+          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        );
+      }
+
+      function applyTheme(theme, persist) {
+        document.documentElement.setAttribute("data-theme", theme);
+        updateToggleLabel(theme);
+        setMetaThemeColor(theme);
+        if (persist) {
+          try {
+            localStorage.setItem(key, theme);
+          } catch (e) {
+            /* ignore storage failures */
+          }
+        }
+      }
+
+      applyTheme(getTheme(), false);
+
+      toggle.addEventListener("click", function () {
+        applyTheme(getTheme() === "dark" ? "light" : "dark", true);
+      });
+    })();
+
+    (function initMobileMenu() {
+      var header = document.querySelector(".site-header");
+      var menuToggle = document.querySelector("[data-menu-toggle]");
+      var nav = document.getElementById("mobile-menu");
+      var backdrop = document.querySelector("[data-menu-backdrop]");
+      if (!header || !menuToggle || !nav) return;
+
+      function isMobile() {
+        return window.matchMedia("(max-width: 768px)").matches;
+      }
+
+      function setOpen(isOpen) {
+        header.classList.toggle("is-menu-open", isOpen);
+        document.body.classList.toggle("is-menu-open", isOpen);
+        menuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        menuToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+
+        if (isMobile()) {
+          nav.setAttribute("aria-hidden", isOpen ? "false" : "true");
+          document.body.style.overflow = isOpen ? "hidden" : "";
+        } else {
+          nav.removeAttribute("aria-hidden");
+          document.body.style.overflow = "";
+        }
+
+        if (backdrop) {
+          backdrop.setAttribute("aria-hidden", isOpen && isMobile() ? "false" : "true");
+          backdrop.tabIndex = isOpen && isMobile() ? 0 : -1;
+        }
+      }
+
+      menuToggle.addEventListener("click", function () {
+        setOpen(!header.classList.contains("is-menu-open"));
+      });
+
+      if (backdrop) {
+        backdrop.addEventListener("click", function () {
+          setOpen(false);
+          menuToggle.focus();
         });
       }
 
-      function animateValues() {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          setValues(STATS);
-          return;
+      nav.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          setOpen(false);
+        });
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && header.classList.contains("is-menu-open")) {
+          setOpen(false);
+          menuToggle.focus();
         }
+      });
 
-        var duration = 1200;
-        var start = null;
+      window.matchMedia("(max-width: 768px)").addEventListener("change", function (event) {
+        if (!event.matches) setOpen(false);
+      });
 
-        function step(timestamp) {
-          if (start === null) start = timestamp;
-          var progress = Math.min((timestamp - start) / duration, 1);
-          var eased = 1 - Math.pow(1 - progress, 3);
-          setValues({
-            traces: Math.round(STATS.traces * eased),
-            countries: Math.round(STATS.countries * eased),
-            starred: Math.round(STATS.starred * eased)
-          });
-          if (progress < 1) {
-            window.requestAnimationFrame(step);
+      window.matchMedia("(min-width: 769px)").addEventListener("change", function (event) {
+        if (event.matches) setOpen(false);
+      });
+
+      setOpen(false);
+    })();
+
+    (function initScrollReset() {
+      function resetToTop() {
+        window.scrollTo(0, 0);
+      }
+
+      resetToTop();
+
+      window.addEventListener("pageshow", function (event) {
+        if (!event.persisted) {
+          resetToTop();
+        }
+      });
+    })();
+
+    (function initSocialProof() {
+      var COUNT_URL = "https://app.manualfor.life/api/entries/count";
+
+      var fallback = document.querySelector("[data-social-fallback]");
+      var grid = document.querySelector("[data-stat-grid]");
+      var tracesNode = document.querySelector('[data-stat-value="traces"]');
+      if (!fallback || !grid || !tracesNode) return;
+
+      function showFallback() {
+        fallback.hidden = false;
+        grid.hidden = true;
+      }
+
+      function showCount(count) {
+        tracesNode.textContent = count.toLocaleString("en-US");
+        fallback.hidden = true;
+        grid.hidden = false;
+      }
+
+      fetch(COUNT_URL, { method: "GET" })
+        .then(function (response) {
+          if (!response.ok) throw new Error("count unavailable");
+          return response.json();
+        })
+        .then(function (payload) {
+          var count = payload && payload.count;
+          if (typeof count !== "number" || !Number.isFinite(count) || count <= 0) {
+            showFallback();
+            return;
           }
-        }
-
-        window.requestAnimationFrame(step);
-      }
-
-      if ("IntersectionObserver" in window) {
-        var observer = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (!entry.isIntersecting) return;
-              section.classList.add("is-visible");
-              animateValues();
-              observer.disconnect();
-            });
-          },
-          { threshold: 0.35 }
-        );
-        observer.observe(section);
-      } else {
-        section.classList.add("is-visible");
-        animateValues();
-      }
+          showCount(count);
+        })
+        .catch(function () {
+          showFallback();
+        });
     })();
   </script>
 </body>

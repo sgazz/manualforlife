@@ -377,10 +377,10 @@ export function InputBox({
             disabled={isInvalid || isSubmitting}
             title={
               isSubmitting
-                ? "Saving your trace..."
+                ? "Saving your Trace..."
                 : isInvalid
-                  ? "Enter a trace to submit"
-                  : "Submit trace"
+                  ? "Enter a Trace to submit"
+                  : "Submit Trace"
             }
             className={`mx-auto inline-flex min-h-11 min-w-44 items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-[opacity,transform] duration-300 hover:brightness-105 motion-reduce:transition-none disabled:cursor-not-allowed disabled:hover:brightness-100 sm:mx-0 ${
               isInvalid || isSubmitting
@@ -402,7 +402,7 @@ export function InputBox({
               boxShadow: "0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 65%, transparent) inset",
             }}
           >
-            {isSubmitting ? "Saving..." : "Leave a trace"}
+            {isSubmitting ? "Saving..." : "Leave a Trace"}
           </button>
         </div>
 

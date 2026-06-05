@@ -45,7 +45,7 @@ export function MobileTraceNav({
             <span className="font-medium tracking-wide">Archive</span>
             {liveBadgeCount > 0 && openPanel !== "live" ? (
               <span
-                aria-label={`${liveBadgeCount} new traces`}
+                aria-label={`${liveBadgeCount} new Traces`}
                 className="inline-flex min-h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.625rem] font-medium tabular-nums"
                 style={{
                   backgroundColor: "color-mix(in srgb, var(--theme-accent) 88%, #f8ecdb 12%)",
@@ -59,7 +59,7 @@ export function MobileTraceNav({
         </button>
         <button
           type="button"
-          aria-label="Open saved traces"
+          aria-label="Open Saved Traces"
           aria-current={openPanel === "starred" ? "page" : undefined}
           onClick={onOpenSaved}
           className={`flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2.5 text-xs transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--theme-accent-soft) ${

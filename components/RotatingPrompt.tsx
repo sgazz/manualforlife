@@ -34,7 +34,7 @@ export function RotatingPrompt({
   as = "p",
 }: RotatingPromptProps) {
   const safePrompts = useMemo(
-    () => (prompts.length > 0 ? prompts : ["Write your trace..."]),
+    () => (prompts.length > 0 ? prompts : ["Write your Trace..."]),
     [prompts],
   );
   const [index, setIndex] = useState(0);

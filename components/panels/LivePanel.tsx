@@ -101,11 +101,11 @@ export function LivePanel({
         </div>
         {isLoading ? (
           <p className="px-2 py-4 text-sm text-(--theme-muted)">
-            Loading traces...
+            Loading Traces...
           </p>
         ) : showToneEmptyState ? (
           <p className="px-2 py-4 text-sm text-(--theme-muted)/75">
-            No traces in this tone yet.
+            No Traces in this tone yet.
           </p>
         ) : (
           <ul className="space-y-5 pb-5 sm:space-y-6 sm:pb-6">
@@ -149,10 +149,10 @@ export function LivePanel({
                         onClick={() => void onStar(entry.id, { sourceEntry: entry })}
                         aria-label={
                           isStarred
-                            ? "Remove saved trace"
+                            ? "Remove Saved Trace"
                             : isStarring
-                              ? "Saving star"
-                              : "Save trace"
+                              ? "Saving Trace"
+                              : "Save Trace"
                         }
                         title={
                           isStarred
@@ -192,7 +192,7 @@ export function LivePanel({
                   onClick={() => void onLoadOlderEntries()}
                   className="inline-flex min-h-11 items-center text-sm text-(--theme-muted)/75 underline decoration-transparent transition hover:decoration-current disabled:opacity-45"
                 >
-                  {isLoadingOlderEntries ? "Loading earlier traces..." : "Earlier traces"}
+                  {isLoadingOlderEntries ? "Loading earlier Traces..." : "Earlier Traces"}
                 </button>
               ) : null}
             </div>
@@ -235,10 +235,10 @@ export function LivePanel({
                             onClick={() => void onStar(entry.id, { sourceEntry: entry })}
                             aria-label={
                               isStarred
-                                ? "Remove saved trace"
+                                ? "Remove Saved Trace"
                                 : isStarring
-                                  ? "Saving star"
-                                  : "Save trace"
+                                  ? "Saving Trace"
+                                  : "Save Trace"
                             }
                             title={
                               isStarred

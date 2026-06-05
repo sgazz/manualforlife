@@ -92,7 +92,7 @@ export function StarredPanel({
                       disabled={Boolean(starringEntryIds[entry.id])}
                       onClick={() => void onStar(entry.id)}
                       aria-label={
-                        starringEntryIds[entry.id] ? "Saving star" : "Remove saved trace"
+                        starringEntryIds[entry.id] ? "Saving star" : "Remove Saved Trace"
                       }
                       title={starringEntryIds[entry.id] ? "Saving star..." : "Remove star"}
                       className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 text-xs text-(--theme-muted)/55 transition-colors duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) disabled:opacity-45"

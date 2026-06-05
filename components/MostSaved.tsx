@@ -82,7 +82,7 @@ function MostSavedCard({
       <div
         className="mt-4 flex flex-wrap items-start justify-center gap-x-1 gap-y-2"
         role="group"
-        aria-label={`Actions for saved trace: ${entry.text}`}
+        aria-label={`Actions for Saved Trace: ${entry.text}`}
       >
         <CopyTraceLinkButton entryId={entry.id} label="Copy" variant="inline" />
         <NativeShareButton
@@ -104,13 +104,13 @@ function MostSavedCard({
           onClick={() => void onStar(entry.id, { sourceEntry: entry })}
           aria-label={
             isStarred
-              ? "Remove saved trace"
+              ? "Remove Saved Trace"
               : isStarring
-                ? "Saving trace"
-                : "Save trace"
+                ? "Saving Trace"
+                : "Save Trace"
           }
           title={
-            isStarred ? "Remove save" : isStarring ? "Saving..." : "Save trace"
+            isStarred ? "Remove save" : isStarring ? "Saving..." : "Save Trace"
           }
           className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-2 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) active:scale-95 disabled:opacity-45 motion-reduce:transition-none"
         >
@@ -153,7 +153,7 @@ export function MostSaved({
           id="most-saved-title"
           className="typography-hint text-[0.7rem] font-medium tracking-[0.16em] text-(--theme-muted)/58 uppercase"
         >
-          Most Saved
+          Most Saved Traces
         </h2>
         <p className="mt-2 font-serif text-[1.05rem] leading-snug text-(--theme-text)/82 sm:text-[1.15rem]">
           Thoughts people chose to keep.
@@ -167,7 +167,7 @@ export function MostSaved({
       {traces.length === 0 ? (
         <div className="mt-6 text-center sm:mt-7">
           <p className="mx-auto max-w-md text-sm leading-7 text-(--theme-muted)/75">
-            No saved traces yet for this period.
+            No Traces Yet for this period.
           </p>
           <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-(--theme-muted)/58">
             The archive is still being written.

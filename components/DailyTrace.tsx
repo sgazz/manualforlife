@@ -52,8 +52,9 @@ export function DailyTrace({
 
   return (
     <section
+      id="daily-trace"
       aria-labelledby="daily-trace-title"
-      className={`transition-opacity duration-300 motion-reduce:transition-none ${
+      className={`scroll-mt-24 transition-opacity duration-300 motion-reduce:transition-none ${
         subdued ? "opacity-55" : "opacity-100"
       }`}
     >
@@ -108,17 +109,17 @@ export function DailyTrace({
                 onClick={() => void handleStar()}
                 aria-label={
                   isStarred
-                    ? "Remove saved trace"
+                    ? "Remove Saved Trace"
                     : isStarring
-                      ? "Saving trace"
-                      : "Save trace"
+                      ? "Saving Trace"
+                      : "Save Trace"
                 }
                 title={
                   isStarred
                     ? "Remove save"
                     : isStarring
                       ? "Saving..."
-                      : "Save trace"
+                      : "Save Trace"
                 }
                 className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-2 text-xs text-(--theme-muted)/55 transition-[color,transform] duration-300 ease-in-out hover:text-(--theme-muted)/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--theme-accent-soft) active:scale-95 disabled:opacity-45 motion-reduce:transition-none"
               >
@@ -142,7 +143,7 @@ export function DailyTrace({
                 "color-mix(in srgb, var(--theme-surface) 94%, var(--theme-muted) 6%)",
             }}
           >
-            Leave the first trace
+            Leave the first Trace
           </button>
         </div>
       )}

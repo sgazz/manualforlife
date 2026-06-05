@@ -48,7 +48,7 @@ export function TracePageCard({ entry }: TracePageCardProps) {
               "0 0 0 1px color-mix(in srgb, var(--theme-accent-soft) 60%, transparent) inset",
           }}
         >
-          Leave your own trace
+          Leave Your Own Trace
         </Link>
       </main>
     </div>

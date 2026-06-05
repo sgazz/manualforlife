@@ -516,16 +516,30 @@ function ThemedContent({
 
   const focusWritingInput = useCallback(() => {
     const input = document.getElementById("entry-text");
-    if (!input) {
+    const entry = document.getElementById("entry");
+    const scrollTarget = entry ?? input;
+    if (!scrollTarget) {
       return;
     }
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    input.scrollIntoView({
+    scrollTarget.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
-      block: "center",
+      block: "start",
     });
     window.requestAnimationFrame(() => {
-      input.focus({ preventScroll: true });
+      input?.focus({ preventScroll: true });
+    });
+  }, []);
+
+  const scrollToReadTraces = useCallback(() => {
+    const section = document.getElementById("daily-trace");
+    if (!section) {
+      return;
+    }
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    section.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
     });
   }, []);
 
@@ -544,6 +558,31 @@ function ThemedContent({
   const toggleSavedPanel = useCallback(() => {
     setOpenPanel(openPanel === "starred" ? null : "starred");
   }, [openPanel, setOpenPanel]);
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) {
+      return;
+    }
+
+    const run = () => {
+      if (hash === "entry" || hash === "entry-text") {
+        focusWritingInput();
+        return;
+      }
+      if (
+        (hash === "read-traces" || hash === "daily-trace") &&
+        !isLoading
+      ) {
+        scrollToReadTraces();
+      }
+    };
+
+    const frame = window.requestAnimationFrame(run);
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [focusWritingInput, scrollToReadTraces, isLoading]);
 
   useEffect(() => {
     if (openPanel === "live") {
@@ -630,7 +669,7 @@ function ThemedContent({
       };
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Failed to load older traces.");
+        throw new Error(payload.error ?? "Failed to load older Traces.");
       }
 
       const normalized = (payload.entries ?? []).map((entry) => normalizeEntryRow(entry));
@@ -646,14 +685,14 @@ function ThemedContent({
       setNextCursor(payload.nextCursor ?? null);
       setErrorMessage(null);
     } catch {
-      setErrorMessage("Could not load earlier traces right now. Please try again.");
+      setErrorMessage("Could not load earlier Traces right now. Please try again.");
     } finally {
       setIsLoadingOlder(false);
     }
   }, [isLoadingOlder, nextCursor, recentEntries, setErrorMessage]);
 
   return (
-    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(6.25rem,calc(5rem+env(safe-area-inset-bottom,0px)))] sm:items-center sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
+    <main className="relative flex min-h-dvh items-start justify-center pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(6.25rem,calc(5rem+env(safe-area-inset-bottom,0px)))] sm:pl-6 sm:pr-6 sm:pt-14 sm:pb-14">
       <div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none ${
@@ -742,6 +781,36 @@ function ThemedContent({
         >
           <Hero />
         </div>
+        <section id="entry" className="scroll-mt-24 pt-2 sm:pt-0">
+          <InputBox
+            value={text}
+            maxLength={MAX_LENGTH}
+            isSubmitting={isSubmitting}
+            turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
+            hasTurnstileToken={Boolean(turnstileToken)}
+            onChange={setText}
+            onSubmit={handleSubmit}
+            onFocusChange={setIsWritingFocused}
+            tone={tone}
+            onToneChange={onToneChange}
+            deferPostSubmitToParent
+            chromeSuppressed={
+              openPanel !== null || reflectionOpen || isPurposeOpen
+            }
+          />
+        </section>
+        {errorMessage ? (
+          <p
+            className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
+            style={{
+              borderColor: "var(--theme-error-border)",
+              backgroundColor: "var(--theme-error-bg)",
+              color: "var(--theme-error-text)",
+            }}
+          >
+            {errorMessage}
+          </p>
+        ) : null}
         <DailyTrace
           entry={dailyTraceEntry}
           isLoading={isLoading}
@@ -789,36 +858,6 @@ function ThemedContent({
           starredEntryIds={starredEntryIds}
           resolveEntry={resolveLoadedEntry}
         />
-        <div className="pt-2 sm:pt-0">
-          <InputBox
-            value={text}
-            maxLength={MAX_LENGTH}
-            isSubmitting={isSubmitting}
-            turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
-            hasTurnstileToken={Boolean(turnstileToken)}
-            onChange={setText}
-            onSubmit={handleSubmit}
-            onFocusChange={setIsWritingFocused}
-            tone={tone}
-            onToneChange={onToneChange}
-            deferPostSubmitToParent
-            chromeSuppressed={
-              openPanel !== null || reflectionOpen || isPurposeOpen
-            }
-          />
-        </div>
-        {errorMessage ? (
-          <p
-            className="rounded-xl border px-4 py-3 text-sm transition-colors duration-400"
-            style={{
-              borderColor: "var(--theme-error-border)",
-              backgroundColor: "var(--theme-error-bg)",
-              color: "var(--theme-error-text)",
-            }}
-          >
-            {errorMessage}
-          </p>
-        ) : null}
         <section className="pt-1 text-center text-sm text-(--theme-muted) transition-colors duration-400">
           <p>For future generations.</p>
           <button
